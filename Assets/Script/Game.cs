@@ -1,16 +1,12 @@
-using UnityEngine;
+using Tools;
 
-public class Game : MonoBehaviour
+public class Game : Singleton<Game>
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
     }
 
-    // Update is called once per frame
     void Update()
     {
-        
     }
 }
