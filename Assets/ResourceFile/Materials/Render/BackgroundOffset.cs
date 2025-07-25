@@ -1,15 +1,16 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BackgroundOffset : MonoBehaviour
 {
     private static readonly int CharacterWs = Shader.PropertyToID("CharacterWS");
+    // TODO: 用Camera的 bounding 来确定 offset
     private const float _yOffset = 20f;
     private const float _xOffset = 23f;
     [SerializeField] private MeshFilter _meshFilter;
     [SerializeField] private MeshRenderer _meshRenderer;
     [SerializeField] private Transform _character;
     private Material _material;
+    
     [Header("MODIFY")] 
     [SerializeField] private float _xOffsetSpeed = 1f;
     [SerializeField] private float _yOffsetSpeed = 1f;
