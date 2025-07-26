@@ -782,6 +782,8 @@ GameObject:
   - component: {fileID: 688722452}
   - component: {fileID: 688722454}
   - component: {fileID: 688722453}
+  - component: {fileID: 688722455}
+  - component: {fileID: 688722456}
   m_Layer: 0
   m_Name: Character
   m_TagString: Untagged
@@ -820,7 +822,7 @@ Rigidbody2D:
   m_Mass: 1
   m_LinearDamping: 0
   m_AngularDamping: 0.05
-  m_GravityScale: 1
+  m_GravityScale: 4
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -830,7 +832,7 @@ Rigidbody2D:
     m_Bits: 0
   m_Interpolate: 0
   m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_CollisionDetection: 1
   m_Constraints: 4
 --- !u!70 &688722454
 CapsuleCollider2D:
@@ -842,7 +844,7 @@ CapsuleCollider2D:
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 6200000, guid: 8eb0d19f18eb38247bca69b69a4950e0, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -869,6 +871,39 @@ CapsuleCollider2D:
   m_Offset: {x: 0.012925029, y: -0.0020899177}
   m_Size: {x: 0.87281454, y: 1.9765016}
   m_Direction: 0
+--- !u!114 &688722455
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 688722451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20c74463536f69744b8b2a7dd01dec84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  inputDirection: {x: 0, y: 0}
+  speed: 200
+  jumpForce: 16.5
+--- !u!114 &688722456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 688722451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8e691a6929072fa4ab8a45c67b54f862, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bottomOffset: {x: 0, y: -1}
+  checkRaduis: 0.1
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  isGround: 0
 --- !u!1 &708558022
 GameObject:
   m_ObjectHideFlags: 0
@@ -1675,7 +1710,7 @@ GameObject:
   - component: {fileID: 1628063941}
   - component: {fileID: 1628063940}
   - component: {fileID: 1628063942}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Ground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
