@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
     public Vector2 inputDirection;
     private Rigidbody2D rb;
     private PhysicsCheck physicsCheck;
-    [Header("╩Ы╠╬╡нйЩ")]
+    [Header("О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫")]
     public float speed;
     public float jumpForce;
     private void Awake()
@@ -39,15 +39,15 @@ public class PlayerController : MonoBehaviour
     }
     public void Move()
     {
-        rb.linearVelocity = new Vector2(inputDirection.x * speed * Time.deltaTime, rb.linearVelocity.y);
+        rb.linearVelocity = new Vector2(inputDirection.x * speed, rb.linearVelocity.y);
 
         if (inputDirection.x != 0)
         {
-            // ж╩пч╦д╦╦нОлЕ╣дxкУ╥е
+            // ж╩О©╫ч╦д╦О©╫О©╫О©╫О©╫О©╫О©╫xО©╫О©╫О©╫О©╫
             int faceDir = inputDirection.x > 0 ? 1 : -1;
             transform.localScale = new Vector3(faceDir, 1, 1);
 
-            // ╤тц©╦ЖвснОлЕс╕сцоЮ╥╢╣дxкУ╥ею╢╣жоШ╦╦нОлЕ╣дс╟оЛ
+            // О©╫О©╫ц©О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫с╕О©╫О©╫О©╫Ю╥╢О©╫О©╫xО©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫О©╫с╟О©╫О©╫
             foreach (Transform child in transform)
             {
                 child.localScale = new Vector3(1.0f / faceDir, 2, 1);
