@@ -40,12 +40,19 @@ public class PlayerController : MonoBehaviour
     public void Move()
     {
         rb.linearVelocity = new Vector2(inputDirection.x * speed * Time.deltaTime, rb.linearVelocity.y);
-        //int faceDir = (int)transform.localScale.x;
-        //if (inputDirection.x > 0)
-        //    faceDir = 1;
-        //if (inputDirection.x < 0)
-        //    faceDir = -1;
-        //transform.localScale = new Vector3(faceDir, 1, 1);
+
+        if (inputDirection.x != 0)
+        {
+            // 只修改父物体的x缩放
+            int faceDir = inputDirection.x > 0 ? 1 : -1;
+            transform.localScale = new Vector3(faceDir, 1, 1);
+
+            // 对每个子物体应用相反的x缩放来抵消父物体的影响
+            foreach (Transform child in transform)
+            {
+                child.localScale = new Vector3(1.0f / faceDir, 2, 1);
+            }
+        }
     }
     private void Jump(InputAction.CallbackContext context)
     {
