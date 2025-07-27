@@ -29,10 +29,10 @@ public class ElasticObject : MonoBehaviour
             _block.SetVector(HitPosition, new Vector4(_collisionPoint.x, _collisionPoint.y, 0, 0));
             _block.SetFloat(AnimProgress, _animPlayingTime / AnimPlayTime);
             _renderer.SetPropertyBlock(_block);
-            _animPlayingTime -= Time.deltaTime;
-            if (_animPlayingTime <= 0f)
+            _animPlayingTime += Time.deltaTime;
+            if (_animPlayingTime >= AnimPlayTime)
             {
-                _block.SetFloat(AnimProgress, 0f);
+                _block.SetFloat(AnimProgress, 1f);
                 _renderer.SetPropertyBlock(_block);
                 _isPlayAnim = false;
             }
@@ -46,6 +46,6 @@ public class ElasticObject : MonoBehaviour
 
         _collisionPoint = other.GetContact(0).point;
         _isPlayAnim = true;
-        _animPlayingTime = AnimPlayTime;
+        _animPlayingTime = 0f;
     }
 }
