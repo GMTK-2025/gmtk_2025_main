@@ -884,8 +884,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   inputDirection: {x: 0, y: 0}
-  speed: 200
-  jumpForce: 16.5
+  rb: {fileID: 0}
+  physicsCheck: {fileID: 0}
+  speed: 5
+  jumpForce: 16
 --- !u!114 &688722456
 MonoBehaviour:
   m_ObjectHideFlags: 0
