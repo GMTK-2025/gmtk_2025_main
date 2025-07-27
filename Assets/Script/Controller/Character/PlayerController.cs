@@ -2,62 +2,62 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody2D), typeof(PhysicsCheck))]
 public class PlayerController : MonoBehaviour
 {
-  public PlayerInputControl inputControl;
-    public Vector2 inputDirection;
-    private Rigidbody2D rb;
-    private PhysicsCheck physicsCheck;
-    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    [HideInInspector] public PlayerInputControl inputControl;
+    [HideInInspector] public Vector2 inputDirection;
+    [HideInInspector] public Rigidbody2D rb;
+    [HideInInspector] public PhysicsCheck physicsCheck;
+
+    [Header("»ù±¾²ÎÊý")]
     public float speed;
     public float jumpForce;
-    private void Awake()
+
+    [HideInInspector] public PlayerState currentState;
+    [HideInInspector] public PlayerState runState;
+    [HideInInspector] public PlayerState jumpState;
+
+    protected virtual void Awake()
     {
         inputControl = new PlayerInputControl();
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
-        inputControl.Player.Jump.started += Jump;
-    }
 
-  
+        // ³õÊ¼»¯×´Ì¬
+        runState = new PlayerRunState();
+        jumpState = new PlayerJumpState();
+    }
 
     private void OnEnable()
     {
         inputControl.Enable();
+        // ³õÊ¼×´Ì¬ÉèÎªÅÜ²½×´Ì¬
+        currentState = runState;
+        currentState.OnEnter(this);
     }
+
     private void OnDisable()
     {
         inputControl.Disable();
+        currentState.OnExit();
     }
+
     private void Update()
     {
         inputDirection = inputControl.Player.Move.ReadValue<Vector2>();
+        currentState.LogicUpdate();
     }
+
     private void FixedUpdate()
     {
-        Move();
+        currentState.PhysicsUpdate();
     }
-    public void Move()
-    {
-        rb.linearVelocity = new Vector2(inputDirection.x * speed, rb.linearVelocity.y);
 
-        if (inputDirection.x != 0)
-        {
-            // Ö»ï¿½Þ¸Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½
-            int faceDir = inputDirection.x > 0 ? 1 : -1;
-            transform.localScale = new Vector3(faceDir, 1, 1);
-
-            // ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½à·´ï¿½ï¿½xï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó°ï¿½ï¿½
-            foreach (Transform child in transform)
-            {
-                child.localScale = new Vector3(1.0f / faceDir, 2, 1);
-            }
-        }
-    }
-    private void Jump(InputAction.CallbackContext context)
+    public void SwitchState(PlayerState newState)
     {
-        // Debug.Log("JUMP");
-        if (physicsCheck.isGround)
-            rb.AddForce(transform.up * jumpForce, ForceMode2D.Impulse);
+        currentState.OnExit();
+        currentState = newState;
+        currentState.OnEnter(this);
     }
 }
