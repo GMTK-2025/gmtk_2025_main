@@ -195,7 +195,7 @@ namespace Event
 
     public static class EventBus
     {
-        private static BaseEventBus<GameEventType> _gameplay;
+        private static BaseEventBus<GameEventType> _game;
         private static BaseEventBus<InputEventType> _input;
         private static BaseEventBus<BackpackEventType> _backpack;
         private static BaseEventBus<CharacterEventType> _character;
@@ -210,7 +210,7 @@ namespace Event
         public static BaseEventBus<InputStateType> InputState =>
             _inputState ??= new InputStateEventBus();
 
-        public static BaseEventBus<GameEventType> Gameplay => _gameplay ??= new GameEventBus();
+        public static BaseEventBus<GameEventType> Game => _game ??= new GameEventBus();
         public static BaseEventBus<InputEventType> Input => _input ??= new InputEventBus();
         public static BaseEventBus<BackpackEventType> Backpack => _backpack ??= new BackpackEventBus();
         public static BaseEventBus<CharacterEventType> Character => _character ??= new CharacterEventBus();
