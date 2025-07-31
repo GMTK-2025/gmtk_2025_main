@@ -7,16 +7,16 @@ public class PlayerJumpState : PlayerState
         this.player = player;
         player.currentJumpCount++;
 
-        // 仅在地面跳跃时重置速度（防止空中二段跳干扰）
+        // 仅在地面跳跃时重置速度
         if (player.physicsCheck.isGround)
         {
             player.rb.linearVelocity = new Vector2(player.rb.linearVelocity.x, 0);
         }
 
-        // 施加跳跃力（确保使用Impulse模式）
+        // 施加跳跃力
         player.rb.AddForce(Vector2.up * player.jumpForce, ForceMode2D.Impulse);
 
-        // Debug.Log($"Jumped! Current jump count: {player.currentJumpCount}");
+        
     }
 
     public override void LogicUpdate()
