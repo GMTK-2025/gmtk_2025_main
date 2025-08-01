@@ -36,7 +36,7 @@ public class PlayerRunState : PlayerState
             // 处理子对象翻转
             foreach (Transform child in player.transform)
             {
-                child.localScale = new Vector3(1.0f / faceDir, 2, 1);
+                child.localScale = new Vector3(1.0f / faceDir, 1, 1);
             }
         }
     }

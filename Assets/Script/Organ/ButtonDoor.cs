@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(BoxCollider2D))]
+// 移除自动添加BoxCollider2D的特性，避免给脚本挂载物体自动添加碰撞器
 public class ButtonDoorController : MonoBehaviour
 {
     [Header("门设置")]
@@ -12,10 +12,14 @@ public class ButtonDoorController : MonoBehaviour
     [Header("按钮1设置（控制门上移）")]
     public GameObject button1;              // 第一个按钮物体
     public float button1PressDepth = 0.2f;  // 按钮1按下深度
+    [Tooltip("手动指定按钮1的触发器碰撞器（必须提前添加并勾选Is Trigger）")]
+    public BoxCollider2D button1Collider;   // 手动配置的按钮1碰撞器
 
     [Header("按钮2设置（强制控制门下移）")]
     public GameObject button2;              // 第二个按钮物体
     public float button2PressDepth = 0.2f;  // 按钮2按下深度
+    [Tooltip("手动指定按钮2的触发器碰撞器（必须提前添加并勾选Is Trigger）")]
+    public BoxCollider2D button2Collider;   // 手动配置的按钮2碰撞器
 
     private Vector3 originalDoorPosition;   // 门初始位置（关闭位置）
     private Vector3 raisedDoorPosition;     // 门升起位置（打开位置）
@@ -36,20 +40,68 @@ public class ButtonDoorController : MonoBehaviour
         originalButton1Pos = button1.transform.position;
         originalButton2Pos = button2.transform.position;
 
-        // 自动配置按钮碰撞器和触发
-        SetupButtonTrigger(button1, OnButton1Enter, OnButton1Exit);
-        SetupButtonTrigger(button2, OnButton2Enter, OnButton2Exit);
+        // 校验手动配置的碰撞器
+        if (!ValidateButtonColliders())
+        {
+            enabled = false; // 配置错误时禁用脚本
+            return;
+        }
+
+        // 仅配置触发事件（不添加碰撞器）
+        SetupButtonTrigger(button1, button1Collider, OnButton1Enter, OnButton1Exit);
+        SetupButtonTrigger(button2, button2Collider, OnButton2Enter, OnButton2Exit);
     }
 
-    // 自动设置按钮的碰撞器和触发事件
-    private void SetupButtonTrigger(GameObject button, System.Action<Collider2D> enterAction, System.Action<Collider2D> exitAction)
+    // 校验手动配置的碰撞器是否有效
+    private bool ValidateButtonColliders()
     {
-        BoxCollider2D collider = button.GetComponent<BoxCollider2D>();
-        if (collider == null) collider = button.AddComponent<BoxCollider2D>();
-        collider.isTrigger = true;
+        bool isValid = true;
 
-        ButtonTriggerHandler handler = button.GetComponent<ButtonTriggerHandler>();
-        if (handler == null) handler = button.AddComponent<ButtonTriggerHandler>();
+        // 校验按钮1碰撞器
+        if (button1Collider == null)
+        {
+            isValid = false;
+        }
+        else if (button1Collider.gameObject != button1)
+        {
+            isValid = false;
+        }
+        else if (!button1Collider.isTrigger)
+        {
+            button1Collider.isTrigger = true; // 自动修正
+            isValid = false;
+        }
+
+        // 校验按钮2碰撞器
+        if (button2Collider == null)
+        {
+            isValid = false;
+        }
+        else if (button2Collider.gameObject != button2)
+        {
+            isValid = false;
+        }
+        else if (!button2Collider.isTrigger)
+        {
+            button2Collider.isTrigger = true; // 自动修正
+            isValid = false;
+        }
+
+        return isValid;
+    }
+
+    // 仅配置触发事件（不添加碰撞器）
+    private void SetupButtonTrigger(GameObject button, BoxCollider2D collider, System.Action<Collider2D> enterAction, System.Action<Collider2D> exitAction)
+    {
+        // 移除旧的事件处理器，避免重复
+        ButtonTriggerHandler oldHandler = button.GetComponent<ButtonTriggerHandler>();
+        if (oldHandler != null)
+        {
+            Destroy(oldHandler);
+        }
+
+        // 添加新的事件处理器
+        ButtonTriggerHandler handler = button.AddComponent<ButtonTriggerHandler>();
         handler.enterAction = enterAction;
         handler.exitAction = exitAction;
     }
@@ -68,7 +120,6 @@ public class ButtonDoorController : MonoBehaviour
         }
         else
         {
-            // button2未按下 → 由button1控制（按下则开门，否则关门）
             targetDoorPos = isButton1Pressed ? raisedDoorPosition : originalDoorPosition;
         }
 

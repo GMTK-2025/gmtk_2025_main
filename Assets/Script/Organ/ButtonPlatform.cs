@@ -3,103 +3,150 @@ using UnityEngine;
 
 public class ButtonPlatform : MonoBehaviour
 {
-    [Header("平台设置")]
+    [Header("平台基础设置")]
     public Transform platform;              // 平台物体
-    public float platformMoveDistance = 5f; // 平台移动距离
+    public float platformMoveDistance = 5f; // 左移距离
     public float buttonPressDepth = 0.2f;   // 按钮按下深度
     public float moveSpeed = 5f;            // 移动速度
 
+    [Header("检测优化设置")]
+    [Tooltip("边缘检测缓冲范围（加大至0.3~0.5）")]
+    public float edgeDetectionBuffer = 0.3f;
+    [Tooltip("离开判定延迟（加大至0.5秒）")]
+    public float stateChangeDelay = 0.5f;
+    [Tooltip("忽略检测的标签（如不需要检测的物体）")]
+    public string ignoreTag = "Ignore";
+
     private Vector3 originalPlatformPosition;
+    private Vector3 leftPosition;
     private Vector3 originalButtonPosition;
+
+    private Dictionary<Collider2D, float> platformObjects = new Dictionary<Collider2D, float>();
     private HashSet<Collider2D> pressingObjects = new HashSet<Collider2D>();
-    private HashSet<Collider2D> platformObjects = new HashSet<Collider2D>();
-    private bool isPressed;
-    private Vector3 lastPlatformPosition;
+    private Collider2D platformCollider;
 
     void Start()
     {
+        if (platform == null)
+        {
+            Debug.LogError("平台未赋值！", this);
+            return;
+        }
         originalPlatformPosition = platform.position;
+        leftPosition = originalPlatformPosition + Vector3.left * platformMoveDistance;
         originalButtonPosition = transform.position;
-        lastPlatformPosition = originalPlatformPosition;
+        platformCollider = platform.GetComponent<Collider2D>();
+
+        // 强制开启平台碰撞器的触发器
+        if (platformCollider != null && !platformCollider.isTrigger)
+        {
+            platformCollider.isTrigger = true;
+        }
     }
 
     void Update()
     {
-        bool currentPressed = pressingObjects.Count > 0;
+        if (platform == null) return;
 
-        if (currentPressed && platformObjects.Count > 0)
+        UpdatePlatformObjectStatus();
+
+        Vector3 targetPos;
+        bool hasObjects = platformObjects.Count > 0;
+        bool isButtonPressed = pressingObjects.Count > 0;
+
+        if (hasObjects)
         {
-            currentPressed = false;
+            targetPos = originalPlatformPosition;
+        }
+        else
+        {
+            targetPos = isButtonPressed ? leftPosition : originalPlatformPosition;
         }
 
-        isPressed = currentPressed;
+        // 移动平台（限制单次移动距离，避免抖动）
+        float maxStep = moveSpeed * Time.deltaTime;
+        platform.position = Vector3.MoveTowards(platform.position, targetPos, maxStep);
 
-        Vector3 targetPlatformPos = isPressed ?
-            originalPlatformPosition + Vector3.left * platformMoveDistance :
-            originalPlatformPosition;
-
-        platform.position = Vector3.Lerp(platform.position, targetPlatformPos, moveSpeed * Time.deltaTime);
-
-        Vector3 platformDelta = platform.position - lastPlatformPosition;
-        lastPlatformPosition = platform.position;
-
-        MovePlatformObjects(platformDelta);
-
-        Vector3 targetButtonPos = isPressed ?
-            originalButtonPosition + Vector3.down * buttonPressDepth :
-            originalButtonPosition;
-        transform.position = Vector3.Lerp(transform.position, targetButtonPos, moveSpeed * Time.deltaTime);
+        // 移动按钮
+        Vector3 targetButtonPos = isButtonPressed
+            ? originalButtonPosition + Vector3.down * buttonPressDepth
+            : originalButtonPosition;
+        transform.position = Vector3.MoveTowards(transform.position, targetButtonPos, maxStep);
     }
 
-    private void MovePlatformObjects(Vector3 platformDelta)
+    private void UpdatePlatformObjectStatus()
     {
-        if (platformDelta.sqrMagnitude < 0.0001f) return;
+        List<Collider2D> toRemove = new List<Collider2D>();
+        var currentKeys = new List<Collider2D>(platformObjects.Keys);
 
-        foreach (var obj in platformObjects)
+        foreach (var obj in currentKeys)
         {
-            if (obj == null) continue;
-
-            if (obj.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
+            if (!platformObjects.ContainsKey(obj) || obj == null)
             {
-                if (rb.bodyType == RigidbodyType2D.Dynamic)
-                {
-                    rb.linearVelocity = new Vector2(platformDelta.x / Time.deltaTime, rb.linearVelocity.y);
-                }
-                else
-                {
-                    obj.transform.position += platformDelta;
-                }
+                toRemove.Add(obj);
+                continue;
+            }
+
+            // 忽略特定标签的物体
+            if (obj.CompareTag(ignoreTag))
+            {
+                toRemove.Add(obj);
+                continue;
+            }
+
+            if (IsObjectOnPlatform(obj))
+            {
+                platformObjects[obj] = 0;
             }
             else
             {
-                obj.transform.position += platformDelta;
+                platformObjects[obj] += Time.deltaTime;
+                if (platformObjects[obj] >= stateChangeDelay)
+                {
+                    toRemove.Add(obj);
+                }
             }
+        }
+
+        foreach (var obj in toRemove)
+        {
+            if (platformObjects.ContainsKey(obj))
+                platformObjects.Remove(obj);
         }
     }
 
-    void OnTriggerEnter2D(Collider2D other)
+    // 扩大检测范围+检查底部位置
+    private bool IsObjectOnPlatform(Collider2D objCollider)
     {
-        pressingObjects.Add(other);
+        if (platformCollider == null || objCollider == null)
+            return false;
+
+        
+        Bounds platformBounds = platformCollider.bounds;
+        platformBounds.Expand(edgeDetectionBuffer);
+
+        // 检测物体底部中心是否在平台范围内
+        Bounds objBounds = objCollider.bounds;
+        Vector3 objBottomCenter = new Vector3(objBounds.center.x, objBounds.min.y, objBounds.center.z);
+
+        return platformBounds.Contains(objBottomCenter);
     }
 
-    void OnTriggerExit2D(Collider2D other)
-    {
-        pressingObjects.Remove(other);
-    }
+    // 按钮触发
+    private void OnTriggerEnter2D(Collider2D other) => pressingObjects.Add(other);
+    private void OnTriggerExit2D(Collider2D other) => pressingObjects.Remove(other);
 
+    // 平台触发
     public void OnPlatformEnter(Collider2D other)
     {
-        if (other != null)
+        if (other != null && !platformObjects.ContainsKey(other) && !other.CompareTag(ignoreTag))
         {
-            platformObjects.Add(other);
+            platformObjects.Add(other, 0);
         }
     }
 
     public void OnPlatformExit(Collider2D other)
     {
-        if (other != null)
-        {
-            platformObjects.Remove(other);
-        }
+        // 退出时不立即移除，交给UpdatePlatformObjectStatus延迟处理
     }
 }
