@@ -7,5 +7,5 @@ public abstract class PlayerState
     public abstract void OnEnter(PlayerController player);
     public abstract void LogicUpdate();
     public abstract void PhysicsUpdate();
-    public abstract void OnExit();
+    public abstract void OnExit(PlayerController player);
 }

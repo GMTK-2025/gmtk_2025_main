@@ -13,31 +13,33 @@ public class PlayerController : MonoBehaviour
 
     public Collider2D collVine;
 
-    [Header("��������")]
+    [Header("基本参数")]
     public float speed;
     public float jumpForce;
 
-    [Header("��Ծ����")]
+    [Header("跳跃参数")]
     public int maxJumpCount = 2;
     [HideInInspector] public int currentJumpCount;
 
-    [Header("��ס״̬����")]
+    [Header("挂住状态参数")]
     public float stuckDuration = 2f;
-    [HideInInspector] public PlayerState stuckState;
+    [HideInInspector] public PlayerStuckState stuckState;
+    public float normalGravityScale = 4f;
 
-    [Header("�������Ҳ���")]
-    public float vineHangDuration = 3f; // ���ҳ���ʱ��
-    public float vineFallSpeed = 1f; // ����ʱ�������ٶ�
-    public float vineLinearDrag = 5f; // ����ʱ��Ħ����
+    [Header("吸附点设置")]
+    public bool useCustomPoint;
+    public Transform customStickPoint;
+
+    [Header("藤蔓悬挂参数")]
+    public float vineHangDuration = 3f;
+    public float vineFallSpeed = 1f;
+    public float vineLinearDrag = 5f;
 
     [HideInInspector] public PlayerState currentState;
-    [HideInInspector] public PlayerState runState;
-    [HideInInspector] public PlayerState jumpState;
-    [HideInInspector] public PlayerState fallState;
-    [HideInInspector] public PlayerState vineHangingState;
-
-   
-    
+    [HideInInspector] public PlayerRunState runState;
+    [HideInInspector] public PlayerJumpState jumpState;
+    [HideInInspector] public PlayerFallState fallState;
+    [HideInInspector] public PlayerVineHangingState vineHangingState;
 
     protected virtual void Awake()
     {
@@ -45,17 +47,12 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
 
-        // ��ʼ������״̬
+        // 初始化状态
         runState = new PlayerRunState();
         jumpState = new PlayerJumpState();
         stuckState = new PlayerStuckState();
-        fallState = new PlayerFallState(); 
+        fallState = new PlayerFallState();
         vineHangingState = new PlayerVineHangingState();
-    }
-
-    private void Start()
-    {
-
     }
 
     private void OnEnable()
@@ -69,65 +66,88 @@ public class PlayerController : MonoBehaviour
     private void OnDisable()
     {
         inputControl.Disable();
-        currentState.OnExit();
+        if (currentState != null)
+        {
+            currentState.OnExit(this);
+        }
     }
 
     private void Update()
     {
-        inputDirection = inputControl.Player.Move.ReadValue<Vector2>();
-        currentState.LogicUpdate();
-
-        if (physicsCheck.isGround)
+        if (currentState != null)
         {
-            currentJumpCount = 0;
+            inputDirection = inputControl.Player.Move.ReadValue<Vector2>();
+            currentState.LogicUpdate();
+
+            if (physicsCheck.isGround)
+            {
+                currentJumpCount = 0;
+            }
         }
     }
 
     private void FixedUpdate()
     {
-        currentState.PhysicsUpdate();
+        if (currentState != null)
+        {
+            currentState.PhysicsUpdate();
+        }
     }
 
     public void SwitchState(PlayerState newState)
     {
-        currentState.OnExit();
+        if (currentState != null)
+        {
+            currentState.OnExit(this);
+        }
         currentState = newState;
-        currentState.OnEnter(this);
+        if (newState != null)
+        {
+            newState.OnEnter(this);
+        }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (other.CompareTag("Curtain") && currentState != stuckState)
+        if (collision.gameObject.CompareTag("Curtain") && currentState != stuckState)
         {
-            if (!physicsCheck.isGround)
+            ContactPoint2D contact = collision.GetContact(0);
+            Vector2 contactWorldPos = contact.point + contact.normal * 0.1f;
+
+            SwitchState(stuckState);
+            if (useCustomPoint && customStickPoint != null)
             {
-                SwitchState(stuckState);
+ 
+                stuckState.SetTargetPoint(customStickPoint);
+            }
+            else
+            {
+       
+                stuckState.CreateAndSetTargetPoint(collision.transform, contactWorldPos);
             }
         }
     }
 
     private void OnTriggerStay2D(Collider2D other)
     {
-        // ���ָ����collVine�Ƿ��뵱ǰother��ײ���Ӵ�
         if (collVine != null && collVine.IsTouching(other))
         {
             if (currentState != vineHangingState && currentState != stuckState)
             {
                 SwitchState(vineHangingState);
             }
-            else if (currentState == vineHangingState)
+            else if (currentState == vineHangingState && vineHangingState != null)
             {
-                (vineHangingState as PlayerVineHangingState).UpdateVineContact(true);
+                vineHangingState.UpdateVineContact(true);
             }
         }
     }
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        // ���ָ����collVine�Ƿ��������other��ײ���ĽӴ�
-        if (collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState)
+        if (collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState && vineHangingState != null)
         {
-            (vineHangingState as PlayerVineHangingState).UpdateVineContact(false);
+            vineHangingState.UpdateVineContact(false);
         }
     }
 

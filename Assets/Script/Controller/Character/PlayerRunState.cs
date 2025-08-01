@@ -41,8 +41,9 @@ public class PlayerRunState : PlayerState
         }
     }
 
-    public override void OnExit()
+    public override void OnExit(PlayerController player)
     {
-
+        
     }
+    
 }

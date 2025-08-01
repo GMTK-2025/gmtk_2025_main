@@ -96,7 +96,7 @@ public class PlayerVineHangingState : PlayerState
         }
     }
 
-    public override void OnExit()
+    public override void OnExit(PlayerController player)
     {
         isExiting = true;
         // 强制恢复物理参数

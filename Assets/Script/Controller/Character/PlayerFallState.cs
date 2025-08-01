@@ -33,5 +33,5 @@ public class PlayerFallState : PlayerState
         );
     }
 
-    public override void OnExit() { }
+    public override void OnExit(PlayerController player) { }
 }

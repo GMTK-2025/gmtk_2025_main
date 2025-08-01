@@ -35,5 +35,5 @@ public class PlayerJumpState : PlayerState
     }
 
     public override void PhysicsUpdate() { }
-    public override void OnExit() { }
+    public override void OnExit(PlayerController player) { }
 }
