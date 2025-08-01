@@ -14,9 +14,7 @@ public class ButtonPlatform : MonoBehaviour
     public float edgeDetectionBuffer = 0.3f;
     [Tooltip("离开判定延迟（加大至0.5秒）")]
     public float stateChangeDelay = 0.5f;
-    [Tooltip("忽略检测的标签（如不需要检测的物体）")]
-    public string ignoreTag = "Ignore";
-
+  
     private Vector3 originalPlatformPosition;
     private Vector3 leftPosition;
     private Vector3 originalButtonPosition;
@@ -88,12 +86,7 @@ public class ButtonPlatform : MonoBehaviour
             }
 
             // 忽略特定标签的物体
-            if (obj.CompareTag(ignoreTag))
-            {
-                toRemove.Add(obj);
-                continue;
-            }
-
+           
             if (IsObjectOnPlatform(obj))
             {
                 platformObjects[obj] = 0;
@@ -139,10 +132,7 @@ public class ButtonPlatform : MonoBehaviour
     // 平台触发
     public void OnPlatformEnter(Collider2D other)
     {
-        if (other != null && !platformObjects.ContainsKey(other) && !other.CompareTag(ignoreTag))
-        {
-            platformObjects.Add(other, 0);
-        }
+        
     }
 
     public void OnPlatformExit(Collider2D other)

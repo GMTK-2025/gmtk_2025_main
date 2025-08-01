@@ -23,9 +23,7 @@ public class PlatformDetector : MonoBehaviour
     {
         if (other == null) return;
 
-        // 忽略自身或不需要检测的物体
-        if (other.gameObject == gameObject || other.CompareTag(buttonPlatform.ignoreTag))
-            return;
+       
 
         if (buttonPlatform != null)
         {
