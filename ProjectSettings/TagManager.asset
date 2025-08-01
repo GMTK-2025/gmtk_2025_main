@@ -8,6 +8,7 @@ TagManager:
   - Vine
   - PlayerVineDetector
   - Ghost
+  - Obstacle
   layers:
   - Default
   - TransparentFX
