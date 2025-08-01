@@ -96,5 +96,7 @@ Packages/Microsoft.Extensions.Primitives.3.1.9
 
 # Specific file
 Assets/Fonts/*.asset
-Assets/Scenes/_TEST.unity
-Assets/Scenes/_TEST.unity.meta
+Assets/Scenes/*_TEST.unity
+Assets/Scenes/*_TEST.unity.meta
+Assets/Scenes/*_01.unity
+Assets/Scenes/*_01.unity.meta
