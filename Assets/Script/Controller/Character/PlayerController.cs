@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
@@ -12,22 +13,22 @@ public class PlayerController : MonoBehaviour
 
     public Collider2D collVine;
 
-    [Header("»ù±¾²ÎÊý")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public float speed;
     public float jumpForce;
 
-    [Header("ÌøÔ¾²ÎÊý")]
+    [Header("ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ï¿½")]
     public int maxJumpCount = 2;
     [HideInInspector] public int currentJumpCount;
 
-    [Header("¹Ò×¡×´Ì¬²ÎÊý")]
+    [Header("ï¿½ï¿½×¡×´Ì¬ï¿½ï¿½ï¿½ï¿½")]
     public float stuckDuration = 2f;
     [HideInInspector] public PlayerState stuckState;
 
-    [Header("ÌÙÂûÐü¹Ò²ÎÊý")]
-    public float vineHangDuration = 3f; // Ðü¹Ò³ÖÐøÊ±¼ä
-    public float vineFallSpeed = 1f; // Ðü¹ÒÊ±µÄÏÂÂäËÙ¶È
-    public float vineLinearDrag = 5f; // Ðü¹ÒÊ±µÄÄ¦²ÁÁ¦
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò²ï¿½ï¿½ï¿½")]
+    public float vineHangDuration = 3f; // ï¿½ï¿½ï¿½Ò³ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
+    public float vineFallSpeed = 1f; // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ù¶ï¿½
+    public float vineLinearDrag = 5f; // ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½Ä¦ï¿½ï¿½ï¿½ï¿½
 
     [HideInInspector] public PlayerState currentState;
     [HideInInspector] public PlayerState runState;
@@ -44,12 +45,17 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
 
-        // ³õÊ¼»¯ËùÓÐ×´Ì¬
+        // ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
         runState = new PlayerRunState();
         jumpState = new PlayerJumpState();
         stuckState = new PlayerStuckState();
         fallState = new PlayerFallState(); 
         vineHangingState = new PlayerVineHangingState();
+    }
+
+    private void Start()
+    {
+
     }
 
     private void OnEnable()
@@ -102,7 +108,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerStay2D(Collider2D other)
     {
-        // ¼ì²éÖ¸¶¨µÄcollVineÊÇ·ñÓëµ±Ç°otherÅö×²Æ÷½Ó´¥
+        // ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½collVineï¿½Ç·ï¿½ï¿½ëµ±Ç°otherï¿½ï¿½×²ï¿½ï¿½ï¿½Ó´ï¿½
         if (collVine != null && collVine.IsTouching(other))
         {
             if (currentState != vineHangingState && currentState != stuckState)
@@ -118,7 +124,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        // ¼ì²éÖ¸¶¨µÄcollVineÊÇ·ñ½áÊøÁËÓëotherÅö×²Æ÷µÄ½Ó´¥
+        // ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½collVineï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½otherï¿½ï¿½×²ï¿½ï¿½ï¿½Ä½Ó´ï¿½
         if (collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState)
         {
             (vineHangingState as PlayerVineHangingState).UpdateVineContact(false);
