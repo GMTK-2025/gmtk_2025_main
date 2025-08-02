@@ -14,7 +14,12 @@ public class ButtonPlatform : MonoBehaviour
     public float edgeDetectionBuffer = 0.3f;
     [Tooltip("离开判定延迟（加大至0.5秒）")]
     public float stateChangeDelay = 0.5f;
-  
+
+    [Header("音频设置")]
+    public AudioClip buttonPressSound;
+    [Range(0, 1)] public float soundVolume = 1f; 
+    private AudioSource audioSource; 
+
     private Vector3 originalPlatformPosition;
     private Vector3 leftPosition;
     private Vector3 originalButtonPosition;
@@ -22,6 +27,9 @@ public class ButtonPlatform : MonoBehaviour
     private Dictionary<Collider2D, float> platformObjects = new Dictionary<Collider2D, float>();
     private HashSet<Collider2D> pressingObjects = new HashSet<Collider2D>();
     private Collider2D platformCollider;
+
+    // 用于判断是否刚触发按钮（避免重复播放音效）
+    private bool wasPressedLastFrame = false;
 
     void Start()
     {
@@ -40,6 +48,15 @@ public class ButtonPlatform : MonoBehaviour
         {
             platformCollider.isTrigger = true;
         }
+
+        // 初始化音频源
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0;
     }
 
     void Update()
@@ -51,6 +68,14 @@ public class ButtonPlatform : MonoBehaviour
         Vector3 targetPos;
         bool hasObjects = platformObjects.Count > 0;
         bool isButtonPressed = pressingObjects.Count > 0;
+
+        // 检测按钮状态变化（从未按下→按下）时播放音效
+        if (isButtonPressed && !wasPressedLastFrame)
+        {
+            PlayButtonPressSound();
+        }
+        // 更新上一帧状态
+        wasPressedLastFrame = isButtonPressed;
 
         if (hasObjects)
         {
@@ -72,6 +97,20 @@ public class ButtonPlatform : MonoBehaviour
         transform.position = Vector3.MoveTowards(transform.position, targetButtonPos, maxStep);
     }
 
+    // 新增：播放按钮触发音效
+    private void PlayButtonPressSound()
+    {
+        if (buttonPressSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(buttonPressSound, soundVolume);
+            Debug.Log("按钮被触发，播放音效");
+        }
+        else if (buttonPressSound == null)
+        {
+            Debug.LogWarning("未设置按钮音效，请在Inspector中赋值buttonPressSound", this);
+        }
+    }
+
     private void UpdatePlatformObjectStatus()
     {
         List<Collider2D> toRemove = new List<Collider2D>();
@@ -85,8 +124,6 @@ public class ButtonPlatform : MonoBehaviour
                 continue;
             }
 
-            // 忽略特定标签的物体
-           
             if (IsObjectOnPlatform(obj))
             {
                 platformObjects[obj] = 0;
@@ -114,7 +151,6 @@ public class ButtonPlatform : MonoBehaviour
         if (platformCollider == null || objCollider == null)
             return false;
 
-        
         Bounds platformBounds = platformCollider.bounds;
         platformBounds.Expand(edgeDetectionBuffer);
 
@@ -125,16 +161,26 @@ public class ButtonPlatform : MonoBehaviour
         return platformBounds.Contains(objBottomCenter);
     }
 
-    // 按钮触发
+    // 按钮触发（进入触发器）
     private void OnTriggerEnter2D(Collider2D other) => pressingObjects.Add(other);
+
+    // 按钮离开（退出触发器）
     private void OnTriggerExit2D(Collider2D other) => pressingObjects.Remove(other);
 
-    // 平台触发
+    // 平台触发（进入）
     public void OnPlatformEnter(Collider2D other)
     {
-        
+        if (!platformObjects.ContainsKey(other))
+        {
+            platformObjects.Add(other, 0);
+        }
+        else
+        {
+            platformObjects[other] = 0;
+        }
     }
 
+    // 平台触发（退出）
     public void OnPlatformExit(Collider2D other)
     {
         // 退出时不立即移除，交给UpdatePlatformObjectStatus延迟处理

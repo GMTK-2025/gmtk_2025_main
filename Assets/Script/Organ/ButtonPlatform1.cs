@@ -11,17 +11,23 @@ public class ButtonPlatform1 : MonoBehaviour
     public float antiBounceThreshold = 0.05f; // 位置偏差阈值
     public float horizontalFriction = 0.1f; // 水平移动摩擦力
 
+    [Header("音频设置")]
+    public AudioClip buttonPressSound; // 按钮触发音效
+    [Range(0, 1)] public float soundVolume = 1f; // 音效音量
+    private AudioSource audioSource; // 音频源组件
+
     private Vector3 originalPlatformPosition;
     private Vector3 targetDownPosition;
     private Vector3 originalButtonPosition;
     private HashSet<Collider2D> pressingObjects = new HashSet<Collider2D>();
     private HashSet<Collider2D> platformObjects = new HashSet<Collider2D>();
     private bool isButtonPressed; // 按钮是否被按下（物体未移开则保持）
+    private bool wasPressedLastFrame; // 上一帧按钮状态（用于检测状态变化）
     private Rigidbody2D platformRb;
     private Dictionary<Collider2D, Vector3> objectOffsets = new Dictionary<Collider2D, Vector3>();
     private bool isProcessingCollision;
 
-    // 物理材质
+   
     private PhysicsMaterial2D platformMaterial;
 
     void Start()
@@ -41,8 +47,20 @@ public class ButtonPlatform1 : MonoBehaviour
             platformRb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
         }
 
+        // 初始化音频源
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0;
+
         ApplyPlatformMaterial(platform.gameObject);
         ForceCheckColliders();
+
+        // 初始化按钮状态
+        wasPressedLastFrame = false;
     }
 
     void FixedUpdate()
@@ -52,6 +70,14 @@ public class ButtonPlatform1 : MonoBehaviour
         // 按钮逻辑：物体未移开则保持按下
         bool hasPressingObjects = pressingObjects.Count > 0;
         isButtonPressed = hasPressingObjects;
+
+        // 检测按钮状态变化（从未按下→按下）时播放音效
+        if (isButtonPressed && !wasPressedLastFrame)
+        {
+            PlayButtonPressSound();
+        }
+        // 更新上一帧状态
+        wasPressedLastFrame = isButtonPressed;
 
         // 平台逻辑：按钮按下时下移，平台有物体时强制上升
         bool hasPlatformObjects = platformObjects.Count > 0;
@@ -88,6 +114,19 @@ public class ButtonPlatform1 : MonoBehaviour
         }
 
         isProcessingCollision = false;
+    }
+
+    // 播放按钮触发音效
+    private void PlayButtonPressSound()
+    {
+        if (buttonPressSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(buttonPressSound, soundVolume);
+        }
+        else if (buttonPressSound == null)
+        {
+            Debug.LogWarning("未设置按钮音效，请在Inspector中为buttonPressSound赋值", this);
+        }
     }
 
     private void SyncObjectsWithPlatform()

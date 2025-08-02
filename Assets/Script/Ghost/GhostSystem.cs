@@ -9,7 +9,8 @@ public enum PlayerStateType
     Jump,
     Fall,
     Stuck,
-    VineHanging
+    VineHanging,
+    Dead // 死亡状态枚举
 }
 
 [System.Serializable]
@@ -49,7 +50,7 @@ public class GhostSystem : MonoBehaviour
     [Header("基本设置")]
     public PlayerController playerController;
     public GameObject playerPrefab;
-    public int maxLives = 9; // 合并为：最大生命值=最大分身数
+    public int maxLives = 9; // 最大生命值=最大分身数
 
     [Header("物理设置")]
     public string ghostTag = "Ghost";
@@ -58,36 +59,64 @@ public class GhostSystem : MonoBehaviour
     [Header("录制设置")]
     public float recordInterval = 0.05f;
 
+    [Header("音频设置")]
+    public AudioClip actionSound; // 通用动作音效
+    [Range(0, 1)] public float soundVolume = 1f;
+    private AudioSource audioSource;
+
     [Header("调试信息")]
     [SerializeField] private List<GhostPlayer> activeGhosts = new List<GhostPlayer>();
     [SerializeField] private GhostRecording currentRecording;
     [SerializeField] private bool isRecording;
-    [SerializeField] public int currentLives; // 合并为：当前生命值=剩余可分身数
+    [SerializeField] public int currentLives; // 当前生命值=剩余可分身数
     private float lastRecordTime;
 
     private void Start()
     {
-        currentLives = maxLives; // 初始化：当前生命值=最大生命值
+        currentLives = maxLives; // 初始化生命值
         Physics2D.IgnoreLayerCollision(
             LayerMask.NameToLayer("Ghost"),
             LayerMask.NameToLayer("Player"),
             true
         );
+
+        // 初始化音频源
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
     }
 
     void Update()
     {
-        if (Keyboard.current.rKey.wasPressedThisFrame)
+        // 核心逻辑：生命值≤0且未处于死亡状态时触发死亡
+        if (currentLives <= 0 && playerController.currentState != playerController.deadState)
+        {
+            TriggerPlayerDeath();
+        }
+
+        if (Keyboard.current.rKey.wasPressedThisFrame && playerController.currentState != playerController.deadState)
         {
             ToggleRecording();
         }
 
-        if (isRecording)
+        if (isRecording && playerController.currentState != playerController.deadState)
         {
             TryRecordFrame();
         }
 
         UpdateAllGhosts();
+    }
+
+    // 触发死亡状态
+    private void TriggerPlayerDeath()
+    {
+        Debug.Log("生命值耗尽，进入死亡状态");
+        // 切换到死亡状态（音效在PlayerDeadState的OnEnter中播放）
+        playerController.SwitchState(playerController.deadState);
     }
 
     void ToggleRecording()
@@ -97,7 +126,7 @@ public class GhostSystem : MonoBehaviour
             StopRecording();
             if (currentRecording.frames.Count > 0)
             {
-                CreateGhost(); // 停止录制时创建分身（消耗生命值）
+                CreateGhost();
                 TeleportPlayerToStartPosition();
             }
         }
@@ -117,7 +146,6 @@ public class GhostSystem : MonoBehaviour
         }
     }
 
-    // 核心修改：判断能否录制（创建分身）的条件改为当前生命值>0
     bool CanStartRecording()
     {
         return currentLives > 0 && activeGhosts.Count < maxLives;
@@ -135,6 +163,7 @@ public class GhostSystem : MonoBehaviour
         isRecording = true;
         lastRecordTime = Time.time;
         Debug.Log("开始录制动作");
+        PlayActionSound();
     }
 
     void TryRecordFrame()
@@ -160,6 +189,7 @@ public class GhostSystem : MonoBehaviour
         currentRecording.frames.Add(frame);
     }
 
+    // 完整的状态转换方法（包含死亡状态）
     PlayerStateType ConvertStateToEnum(PlayerState state)
     {
         if (state is PlayerRunState) return PlayerStateType.Run;
@@ -167,7 +197,8 @@ public class GhostSystem : MonoBehaviour
         if (state is PlayerFallState) return PlayerStateType.Fall;
         if (state is PlayerStuckState) return PlayerStateType.Stuck;
         if (state is PlayerVineHangingState) return PlayerStateType.VineHanging;
-        return PlayerStateType.Run;
+        if (state is PlayerDeadState) return PlayerStateType.Dead; // 死亡状态转换
+        return PlayerStateType.Run; // 默认状态
     }
 
     void StopRecording()
@@ -177,17 +208,20 @@ public class GhostSystem : MonoBehaviour
         Debug.Log($"停止录制，共录制了 {currentRecording.frames.Count} 帧动作");
     }
 
-    // 核心修改：创建分身时消耗生命值，生命值≤0则无法创建
+    // 创建分身时减少生命值
     void CreateGhost()
     {
-        if (currentLives <= 0) // 生命值≤0时无法分身
+        if (currentLives <= 0)
         {
             Debug.LogWarning("生命值不足，无法创建分身！");
             return;
         }
 
-        currentLives--; // 每创建1个分身，生命值-1
+        currentLives--;
         Debug.Log($"创建分身，当前生命值: {currentLives}/{maxLives}");
+
+        // 创建分身时播放音效
+        PlayActionSound();
 
         GameObject ghostObj = Instantiate(
             playerPrefab,
@@ -239,6 +273,15 @@ public class GhostSystem : MonoBehaviour
         activeGhosts.Add(ghost);
     }
 
+    // 播放动作音效
+    private void PlayActionSound()
+    {
+        if (actionSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(actionSound, soundVolume);
+        }
+    }
+
     void UpdateAllGhosts()
     {
         for (int i = activeGhosts.Count - 1; i >= 0; i--)
@@ -269,23 +312,48 @@ public class GhostSystem : MonoBehaviour
 
         ghost.ghostObject.transform.position = frame.position;
         ghost.ghostObject.transform.rotation = frame.rotation;
-        ghost.ghostController.rb.linearVelocity = frame.velocity;
 
-        ghost.ghostController.physicsCheck.isGround = frame.isGrounded;
-        ForcePlayerState(ghost.ghostController, frame.stateType);
+        if (ghost.ghostController != null && ghost.ghostController.rb != null)
+        {
+            ghost.ghostController.rb.linearVelocity = frame.velocity;
+        }
+
+        if (ghost.ghostController != null && ghost.ghostController.physicsCheck != null)
+        {
+            ghost.ghostController.physicsCheck.isGround = frame.isGrounded;
+        }
+
+        if (ghost.ghostController != null)
+        {
+            ForcePlayerState(ghost.ghostController, frame.stateType);
+        }
     }
 
+    // 强制设置分身状态（包含死亡状态）
     void ForcePlayerState(PlayerController controller, PlayerStateType stateType)
     {
         PlayerState newState = null;
 
         switch (stateType)
         {
-            case PlayerStateType.Run: newState = new PlayerRunState(); break;
-            case PlayerStateType.Jump: newState = new PlayerJumpState(); break;
-            case PlayerStateType.Fall: newState = new PlayerFallState(); break;
-            case PlayerStateType.Stuck: newState = new PlayerStuckState(); break;
-            case PlayerStateType.VineHanging: newState = new PlayerVineHangingState(); break;
+            case PlayerStateType.Run:
+                newState = new PlayerRunState();
+                break;
+            case PlayerStateType.Jump:
+                newState = new PlayerJumpState();
+                break;
+            case PlayerStateType.Fall:
+                newState = new PlayerFallState();
+                break;
+            case PlayerStateType.Stuck:
+                newState = new PlayerStuckState();
+                break;
+            case PlayerStateType.VineHanging:
+                newState = new PlayerVineHangingState();
+                break;
+            case PlayerStateType.Dead:  // 处理死亡状态
+                newState = new PlayerDeadState();
+                break;
         }
 
         if (newState != null && controller.currentState.GetType() != newState.GetType())
@@ -310,7 +378,7 @@ public class GhostSystem : MonoBehaviour
             }
         }
         activeGhosts.Clear();
-        currentLives = maxLives; // 可选：清除所有分身时重置生命值
+        currentLives = maxLives; // 重置生命值
         Debug.Log("所有分身已清除，生命值重置");
     }
 }
@@ -363,6 +431,6 @@ public class GhostReplayer : MonoBehaviour
 
     void Update()
     {
-
+        // 分身重放逻辑由GhostSystem统一管理
     }
 }

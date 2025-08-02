@@ -5,21 +5,23 @@ public class PlayerClimbState : PlayerState
     private Transform climbableObject;
     private bool isClimbing = true;
     private Vector3 climbOffset;
-    // 与攀爬物的基础距离
     private float minDistanceToClimbable = 2.4f;
     private float noInputTimer = 0f;
     private const float NO_INPUT_TIMEOUT = 0.1f;
     private bool isFirstEnter = true;
-    // 水平移动范围倍率，控制最大可移动距离
     private float horizontalRangeMultiplier = 2.4f;
 
     // 攀爬物边界限制
-    private float climbableHalfWidth;  // 攀爬物宽度的一半
-    private float leftBound;           // 左边界
-    private float rightBound;          // 右边界
+    private float climbableHalfWidth;
+    private float leftBound;
+    private float rightBound;
 
-    // 存储原始碰撞状态，用于退出时恢复
+    // 存储原始碰撞状态
     private bool[] originalIgnoreStates = new bool[32];
+
+    // 攀爬音效控制（核心变量）
+    private bool isPlayingClimbSound = false; // 当前是否在播放循环音效
+    private bool isMoving = false; // 当前帧是否在移动
 
     // 允许外部设置攀爬物体
     public void SetClimbableObject(Transform climbable)
@@ -27,7 +29,7 @@ public class PlayerClimbState : PlayerState
         climbableObject = climbable;
         if (climbableObject != null)
         {
-            CalculateClimbableBounds();  // 计算边界
+            CalculateClimbableBounds();
         }
     }
 
@@ -37,6 +39,10 @@ public class PlayerClimbState : PlayerState
         this.player = player;
         isFirstEnter = true;
         isClimbing = true;
+
+        // 初始化音效状态
+        isPlayingClimbSound = false;
+        isMoving = false;
 
         // 物理状态重置
         player.rb.linearVelocity = Vector2.zero;
@@ -59,44 +65,33 @@ public class PlayerClimbState : PlayerState
             return;
         }
 
-        // 计算攀爬物边界
         CalculateClimbableBounds();
-
-        // 计算偏移量
         climbOffset = player.transform.position - climbableObject.position;
         climbOffset.x = 0;
         climbOffset.z = 0;
 
-        // 设置初始位置（确保在边界内）
         Vector3 initialPosition = climbableObject.position + climbOffset;
         initialPosition.x = Mathf.Clamp(initialPosition.x, leftBound, rightBound);
         player.transform.position = initialPosition;
 
-        // 保存原始碰撞状态并配置攀爬时的碰撞层
         SaveOriginalCollisionStates();
-        ConfigureCollisionLayers(true);
+        //ConfigureCollisionLayers(true);
     }
 
-    // 计算攀爬物的左右边界
     private void CalculateClimbableBounds()
     {
         if (climbableObject != null)
         {
-            // 获取攀爬物的碰撞体大小
             Collider2D climbableCollider = climbableObject.GetComponent<Collider2D>();
             if (climbableCollider != null)
             {
-                // 计算攀爬物宽度的一半
                 Bounds bounds = climbableCollider.bounds;
                 climbableHalfWidth = bounds.extents.x * horizontalRangeMultiplier;
-
-                // 计算左右边界
                 leftBound = climbableObject.position.x - climbableHalfWidth;
                 rightBound = climbableObject.position.x + climbableHalfWidth;
             }
             else
             {
-                // 如果没有碰撞体，使用默认值
                 climbableHalfWidth = 1.0f * horizontalRangeMultiplier;
                 leftBound = climbableObject.position.x - climbableHalfWidth;
                 rightBound = climbableObject.position.x + climbableHalfWidth;
@@ -118,7 +113,7 @@ public class PlayerClimbState : PlayerState
             noInputTimer += Time.deltaTime;
         }
 
-        // 跳跃处理
+        // 跳跃退出攀爬
         if (player.inputControl.Player.Jump.triggered)
         {
             ExitClimbingWithJump();
@@ -130,7 +125,7 @@ public class PlayerClimbState : PlayerState
             return;
         }
 
-        // 验证攀爬物体
+        // 检查是否仍在攀爬范围内
         if (climbableObject == null || !CheckStillClimbing())
         {
             ExitClimbing();
@@ -138,33 +133,51 @@ public class PlayerClimbState : PlayerState
         }
 
         ProcessClimbingInput();
+        UpdateClimbSound(); // 处理音效逻辑
     }
 
     private void ProcessClimbingInput()
     {
         Vector2 input = player.inputDirection;
+        isMoving = false; // 重置移动状态
 
-        // 垂直移动
+        // 垂直移动检测（按住上/下方向键）
         if (Mathf.Abs(input.y) > 0.05f)
         {
             player.rb.linearVelocity = new Vector2(0, input.y * player.climbSpeed);
+            isMoving = true; // 标记为移动状态
         }
         else
         {
             player.rb.linearVelocity = new Vector2(0, 0);
         }
 
-        // 水平移动 - 使用统一边界限制
+        // 水平移动检测（按住左/右方向键）
         if (Mathf.Abs(input.x) > 0.05f)
         {
-            // 计算水平移动量
             float moveAmount = input.x * player.speed * 0.9f * Time.deltaTime;
             Vector3 newPosition = player.transform.position;
             newPosition.x += moveAmount;
-
-            // 使用预计算的左右边界限制水平移动
             newPosition.x = Mathf.Clamp(newPosition.x, leftBound, rightBound);
             player.transform.position = newPosition;
+            isMoving = true; // 标记为移动状态
+        }
+    }
+
+    // 音效控制核心逻辑
+    private void UpdateClimbSound()
+    {
+        // 移动时播放循环音效
+        if (isMoving && !isPlayingClimbSound)
+        {
+            player.PlayLoopSound(player.climbSound);
+            isPlayingClimbSound = true;
+        }
+        // 停止移动时停止音效
+        else if (!isMoving && isPlayingClimbSound)
+        {
+            player.StopLoopSound();
+            isPlayingClimbSound = false;
         }
     }
 
@@ -202,7 +215,7 @@ public class PlayerClimbState : PlayerState
 
         if (closest != null)
         {
-            CalculateClimbableBounds();  // 找到攀爬物后计算边界
+            CalculateClimbableBounds();
         }
 
         return closest;
@@ -231,6 +244,13 @@ public class PlayerClimbState : PlayerState
         RestoreOriginalCollisionStates();
         player.SwitchState(player.fallState);
         climbableObject = null;
+
+        // 退出时停止音效
+        if (isPlayingClimbSound)
+        {
+            player.StopLoopSound();
+            isPlayingClimbSound = false;
+        }
     }
 
     private void ExitClimbingWithJump()
@@ -242,6 +262,13 @@ public class PlayerClimbState : PlayerState
         player.rb.AddForce(new Vector2(0, player.jumpForce * 0.7f), ForceMode2D.Impulse);
         player.SwitchState(player.jumpState);
         climbableObject = null;
+
+        // 退出时停止音效
+        if (isPlayingClimbSound)
+        {
+            player.StopLoopSound();
+            isPlayingClimbSound = false;
+        }
     }
 
     public override void OnExit(PlayerController player)
@@ -251,12 +278,16 @@ public class PlayerClimbState : PlayerState
         player.rb.gravityScale = player.normalGravityScale;
         RestoreOriginalCollisionStates();
         noInputTimer = 0f;
+
+        // 退出状态时强制停止音效
+        if (isPlayingClimbSound)
+        {
+            player.StopLoopSound();
+            isPlayingClimbSound = false;
+        }
     }
 
-    public override void PhysicsUpdate()
-    {
-        // 攀爬状态下物理更新由刚体自身处理
-    }
+    public override void PhysicsUpdate() { }
 
     private void SaveOriginalCollisionStates()
     {
@@ -269,6 +300,8 @@ public class PlayerClimbState : PlayerState
         }
     }
 
+    //ConfigureCollisionLayers
+
     private void RestoreOriginalCollisionStates()
     {
         if (player == null) return;
@@ -280,24 +313,21 @@ public class PlayerClimbState : PlayerState
         }
     }
 
-    private void ConfigureCollisionLayers(bool isClimbing)
-    {
-        if (player == null) return;
+    //private void ConfigureCollisionLayers(bool isClimbing)
+    //{
+    //    if (player == null) return;
 
-        int playerLayer = player.gameObject.layer;
+    //    int playerLayer = player.gameObject.layer;
+    //    int obstacleLayer = LayerMask.NameToLayer(player.obstacleLayerName);
+    //    int groundLayer = LayerMask.NameToLayer(player.groundLayerName);
+    //    int playerLayerMask = LayerMask.NameToLayer(player.playerLayerName);
 
-        // 获取需要忽略的层
-        int obstacleLayer = LayerMask.NameToLayer(player.obstacleLayerName);
-        int groundLayer = LayerMask.NameToLayer(player.groundLayerName);
-        int playerLayerMask = LayerMask.NameToLayer(player.playerLayerName);
-
-        // 设置攀爬时的碰撞规则
-        for (int i = 0; i < 32; i++)
-        {
-            if (i == obstacleLayer || i == groundLayer || i == playerLayerMask)
-            {
-                Physics2D.IgnoreLayerCollision(playerLayer, i, isClimbing);
-            }
-        }
-    }
+    //    for (int i = 0; i < 32; i++)
+    //    {
+    //        if (i == obstacleLayer || i == groundLayer || i == playerLayerMask)
+    //        {
+    //            Physics2D.IgnoreLayerCollision(playerLayer, i, isClimbing);
+    //        }
+    //    }
+    //}
 }

@@ -3,6 +3,7 @@ using UnityEngine;
 public class PlayerJumpState : PlayerState
 {
     public override void OnEnter(PlayerController player)
+
     {
         this.player = player;
         player.currentJumpCount++;
@@ -15,8 +16,8 @@ public class PlayerJumpState : PlayerState
 
         // 施加跳跃力
         player.rb.AddForce(Vector2.up * player.jumpForce, ForceMode2D.Impulse);
+        player.PlaySound(player.jumpSound); // 播放跳跃音效
 
-        
     }
 
     public override void LogicUpdate()
