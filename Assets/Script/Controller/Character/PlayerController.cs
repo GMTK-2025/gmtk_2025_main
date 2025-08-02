@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using DG.Tweening.Core.Easing;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(PhysicsCheck))]
 public class PlayerController : MonoBehaviour
@@ -190,6 +191,14 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("GameOverZone"))
+        {
+            Debug.Log("游戏结束");
+        }
+    }
     private void OnTriggerStay2D(Collider2D other)
     {
         if (collVine != null && collVine.IsTouching(other))
