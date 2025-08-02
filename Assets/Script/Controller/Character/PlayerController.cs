@@ -42,25 +42,30 @@ public class PlayerController : MonoBehaviour
 
     // 攀爬参数
     [Header("攀爬参数")]
-    public LayerMask climbLayer; // 攀爬层（拖入可攀爬物体所在层）
-    public float climbCheckDistance = 0.5f; // 攀爬检测距离
-    public float climbSpeed = 3f; // 攀爬速度参数
+    public LayerMask climbLayer;
+    public float climbCheckDistance = 0.5f;
+    public float climbSpeed = 3f;
 
-    // 攀爬碰撞设置 - 新增
+    // 攀爬碰撞设置
     [Header("攀爬碰撞设置")]
     public string obstacleLayerName = "Obstacle";
     public string groundLayerName = "Ground";
     public string playerLayerName = "Player";
 
-    [HideInInspector] public PlayerClimbState climbState; // 攀爬状态
+    [HideInInspector] public PlayerClimbState climbState;
 
     // 无敌状态全局管理
     [Header("无敌参数")]
-    public float globalInvincibleDuration = 5f; // 无敌持续时间
-    [HideInInspector] public bool isInvincible; // 当前是否无敌
-    [HideInInspector] public float invincibleTimer; // 无敌计时器
+    public float globalInvincibleDuration = 5f;
+    [HideInInspector] public bool isInvincible;
+    [HideInInspector] public float invincibleTimer;
 
-    // 状态系统：所有状态引用
+    // 受伤击退参数
+    [Header("受伤参数")]
+    public float hurtForceX = 3f;
+    public float hurtForceY = 5f;
+
+    // 状态系统
     [HideInInspector] public PlayerState currentState;
     [HideInInspector] public PlayerRunState runState;
     [HideInInspector] public PlayerJumpState jumpState;
@@ -74,7 +79,6 @@ public class PlayerController : MonoBehaviour
 
     protected virtual void Awake()
     {
-        // 绑定基础组件
         inputControl = new PlayerInputControl();
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
@@ -86,16 +90,11 @@ public class PlayerController : MonoBehaviour
         fallState = new PlayerFallState();
         vineHangingState = new PlayerVineHangingState();
         hurtState = new PlayerHurtState();
-        climbState = new PlayerClimbState(); // 初始化攀爬状态
+        climbState = new PlayerClimbState();
 
-        // 自动查找GhostSystem
         if (ghostSystem == null)
         {
             ghostSystem = FindObjectOfType<GhostSystem>();
-            if (ghostSystem == null)
-            {
-                Debug.LogWarning("未找到GhostSystem，请在Inspector手动指定");
-            }
         }
     }
 
@@ -105,7 +104,7 @@ public class PlayerController : MonoBehaviour
         currentState = runState;
         currentState.OnEnter(this);
         currentJumpCount = 0;
-        isInvincible = false; // 初始禁用无敌
+        isInvincible = false;
     }
 
     private void OnDisable()
@@ -118,24 +117,20 @@ public class PlayerController : MonoBehaviour
     {
         if (currentState != null)
         {
-            // 更新输入方向
             inputDirection = inputControl.Player.Move.ReadValue<Vector2>();
             currentState.LogicUpdate();
 
-            // 落地重置跳跃次数
             if (physicsCheck.isGround)
             {
                 currentJumpCount = 0;
             }
 
-            // 全局无敌计时器（所有状态共享）
             if (isInvincible)
             {
                 invincibleTimer -= Time.deltaTime;
                 if (invincibleTimer <= 0)
                 {
                     isInvincible = false;
-                    Debug.Log("全局无敌状态结束");
                 }
             }
         }
@@ -146,7 +141,6 @@ public class PlayerController : MonoBehaviour
         currentState?.PhysicsUpdate();
     }
 
-    // 状态切换核心方法
     public void SwitchState(PlayerState newState)
     {
         currentState?.OnExit(this);
@@ -154,10 +148,11 @@ public class PlayerController : MonoBehaviour
         newState?.OnEnter(this);
     }
 
-    // 碰撞检测逻辑
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 窗帘碰撞 → 挂住状态
+        // 移除移动物体的碰撞检测，现在通过触发器处理
+
+        // 窗帘碰撞
         if (collision.gameObject.CompareTag("Curtain") && currentState != stuckState)
         {
             ContactPoint2D contact = collision.GetContact(0);
@@ -174,38 +169,27 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 障碍物碰撞 → 受伤状态（带无敌判断）
-        if (collision.gameObject.CompareTag("Obstacle"))
+        // 障碍物碰撞
+        if (collision.gameObject.CompareTag("Obstacle") && !isInvincible)
         {
-            if (!isInvincible)
-            {
-                Debug.Log("非无敌状态，触发受伤");
-                SwitchState(hurtState);
-            }
-            else
-            {
-                Debug.Log("无敌状态，忽略伤害");
-            }
+            SwitchState(hurtState);
+            Vector2 knockbackDirection = (transform.position - collision.transform.position).normalized;
+            rb.linearVelocity = Vector2.zero;
+            rb.AddForce(new Vector2(knockbackDirection.x * hurtForceX, hurtForceY), ForceMode2D.Impulse);
         }
 
-        // 碰到攀爬层物体自动进入攀爬状态
-        if (IsClimbable(collision.gameObject))
+        // 攀爬检测
+        if (IsClimbable(collision.gameObject) &&
+           currentState != climbState &&
+           currentState != hurtState &&
+           currentState != stuckState &&
+           currentState != vineHangingState)
         {
-            // 只有在特定状态下才能进入攀爬状态
-            if (currentState != climbState &&
-                currentState != hurtState &&
-                currentState != stuckState &&
-                currentState != vineHangingState)
-            {
-                Debug.Log("碰撞到攀爬物，进入攀爬状态");
-                // 设置攀爬物体引用
-                climbState.SetClimbableObject(collision.transform);
-                SwitchState(climbState);
-            }
+            climbState.SetClimbableObject(collision.transform);
+            SwitchState(climbState);
         }
     }
 
-    // 藤蔓触发检测
     private void OnTriggerStay2D(Collider2D other)
     {
         if (collVine != null && collVine.IsTouching(other))
@@ -214,7 +198,7 @@ public class PlayerController : MonoBehaviour
             {
                 SwitchState(vineHangingState);
             }
-            else if (currentState == vineHangingState && vineHangingState != null)
+            else if (currentState == vineHangingState)
             {
                 vineHangingState.UpdateVineContact(true);
             }
@@ -223,19 +207,17 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState && vineHangingState != null)
+        if (collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState)
         {
             vineHangingState.UpdateVineContact(false);
         }
     }
 
-    // 协程启动方法
     public void StartCustomCoroutine(IEnumerator coroutine)
     {
         StartCoroutine(coroutine);
     }
 
-    // 获取GhostSystem引用
     public GhostSystem GetGhostSystem()
     {
         if (ghostSystem == null)
@@ -245,11 +227,8 @@ public class PlayerController : MonoBehaviour
         return ghostSystem;
     }
 
-    // 检测物体是否为可攀爬物
     private bool IsClimbable(GameObject obj)
     {
-        // 检查物体是否在攀爬层中
         return (climbLayer.value & (1 << obj.layer)) != 0;
     }
-
 }
