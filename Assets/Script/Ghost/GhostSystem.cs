@@ -29,8 +29,8 @@ public class GhostRecording
     public List<GhostFrame> frames = new List<GhostFrame>();
     public float startTime;
     [HideInInspector] public bool isRecording;
-    [HideInInspector] public Vector3 startPosition; 
-    [HideInInspector] public Quaternion startRotation; 
+    [HideInInspector] public Vector3 startPosition;
+    [HideInInspector] public Quaternion startRotation;
 }
 
 public class GhostSystem : MonoBehaviour
@@ -49,8 +49,7 @@ public class GhostSystem : MonoBehaviour
     [Header("基本设置")]
     public PlayerController playerController;
     public GameObject playerPrefab;
-    public int maxGhosts = 9;
-    public int lives = 9;
+    public int maxLives = 9; // 合并为：最大生命值=最大分身数
 
     [Header("物理设置")]
     public string ghostTag = "Ghost";
@@ -63,10 +62,12 @@ public class GhostSystem : MonoBehaviour
     [SerializeField] private List<GhostPlayer> activeGhosts = new List<GhostPlayer>();
     [SerializeField] private GhostRecording currentRecording;
     [SerializeField] private bool isRecording;
+    [SerializeField] public int currentLives; // 合并为：当前生命值=剩余可分身数
     private float lastRecordTime;
 
     private void Start()
     {
+        currentLives = maxLives; // 初始化：当前生命值=最大生命值
         Physics2D.IgnoreLayerCollision(
             LayerMask.NameToLayer("Ghost"),
             LayerMask.NameToLayer("Player"),
@@ -96,8 +97,7 @@ public class GhostSystem : MonoBehaviour
             StopRecording();
             if (currentRecording.frames.Count > 0)
             {
-                CreateGhost();
-                // 结束录制时，原人物闪现回录制开始位置
+                CreateGhost(); // 停止录制时创建分身（消耗生命值）
                 TeleportPlayerToStartPosition();
             }
         }
@@ -107,23 +107,20 @@ public class GhostSystem : MonoBehaviour
         }
     }
 
-    // 原人物回本次录制开始位置
     void TeleportPlayerToStartPosition()
     {
         if (currentRecording != null)
         {
-          
             playerController.transform.position = currentRecording.startPosition;
             playerController.transform.rotation = currentRecording.startRotation;
-     
             playerController.rb.linearVelocity = Vector2.zero;
-           
         }
     }
 
+    // 核心修改：判断能否录制（创建分身）的条件改为当前生命值>0
     bool CanStartRecording()
     {
-        return lives > 0 && activeGhosts.Count < maxGhosts;
+        return currentLives > 0 && activeGhosts.Count < maxLives;
     }
 
     void StartRecording()
@@ -132,7 +129,6 @@ public class GhostSystem : MonoBehaviour
         {
             startTime = Time.time,
             isRecording = true,
-            // 新增：记录开始时的位置和旋转
             startPosition = playerController.transform.position,
             startRotation = playerController.transform.rotation
         };
@@ -181,9 +177,17 @@ public class GhostSystem : MonoBehaviour
         Debug.Log($"停止录制，共录制了 {currentRecording.frames.Count} 帧动作");
     }
 
+    // 核心修改：创建分身时消耗生命值，生命值≤0则无法创建
     void CreateGhost()
     {
-        lives--;
+        if (currentLives <= 0) // 生命值≤0时无法分身
+        {
+            Debug.LogWarning("生命值不足，无法创建分身！");
+            return;
+        }
+
+        currentLives--; // 每创建1个分身，生命值-1
+        Debug.Log($"创建分身，当前生命值: {currentLives}/{maxLives}");
 
         GameObject ghostObj = Instantiate(
             playerPrefab,
@@ -233,7 +237,6 @@ public class GhostSystem : MonoBehaviour
         replayer.Initialize(ghost);
 
         activeGhosts.Add(ghost);
-        Debug.Log($"创建分身，剩余生命: {lives}");
     }
 
     void UpdateAllGhosts()
@@ -307,6 +310,8 @@ public class GhostSystem : MonoBehaviour
             }
         }
         activeGhosts.Clear();
+        currentLives = maxLives; // 可选：清除所有分身时重置生命值
+        Debug.Log("所有分身已清除，生命值重置");
     }
 }
 
