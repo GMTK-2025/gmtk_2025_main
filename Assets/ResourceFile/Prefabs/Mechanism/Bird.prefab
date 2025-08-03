@@ -167,8 +167,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dc41e75e12cdd534a97df51f4e895289, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  startPoint: {fileID: 0}
-  endPoint: {fileID: 0}
+  startPoint: {fileID: 8399422050502485302}
+  endPoint: {fileID: 257689106650340017}
   moveSpeed: 2
   pingPong: 1
   playerLayer:
