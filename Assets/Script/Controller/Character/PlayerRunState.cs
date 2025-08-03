@@ -16,6 +16,7 @@ public class PlayerRunState : PlayerState
 
     public override void LogicUpdate()
     {
+        player.animManager.SetWalking(isRunning);
         // 检测跳跃输入，支持二段跳
         if (player.inputControl.Player.Jump.WasPressedThisFrame())
         {
@@ -49,10 +50,10 @@ public class PlayerRunState : PlayerState
             player.transform.localScale = new Vector3(faceDir, 1, 1);
 
             // 处理子对象翻转
-            foreach (Transform child in player.transform)
-            {
-                child.localScale = new Vector3(1.0f / faceDir, 1, 1);
-            }
+            //foreach (Transform child in player.transform)
+            //{
+            //    child.localScale = new Vector3(1.0f / faceDir, 1, 1);
+            //}
         }
     }
 
@@ -93,5 +94,7 @@ public class PlayerRunState : PlayerState
             player.StopLoopSound();
             isPlayingRunSound = false;
         }
+
+        player.animManager.SetWalking(false);
     }
 }

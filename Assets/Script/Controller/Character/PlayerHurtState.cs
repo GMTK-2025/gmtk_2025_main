@@ -16,7 +16,7 @@ public class PlayerHurtState : PlayerState
     {
         base.OnEnter(player);
         Debug.Log($"进入受伤状态，伤害源: {damageSource?.name ?? "未知对象"}");
-        player.PlaySound(player.hurtSound); // 播放受伤音效
+        player.PlaySound(player.hurtSound, player.hurtSoundVolume);
 
         // 扣血逻辑
         GhostSystem ghostSystem = player.GetGhostSystem();
