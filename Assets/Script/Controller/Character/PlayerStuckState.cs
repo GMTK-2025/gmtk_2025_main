@@ -10,7 +10,7 @@ public class PlayerStuckState : PlayerState
     private Vector3 positionOffset;
     private bool hasHandledJumpInput;
 
-    // ÉèÖÃÃªµã£¨¹ØÁªµ½³¡¾°ÖÐ¹Ì¶¨µã£©
+    // ï¿½ï¿½ï¿½ï¿½Ãªï¿½ã£¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¹Ì¶ï¿½ï¿½ã£©
     public void SetTargetPoint(Transform point)
     {
         if (player == null || point == null) return;
@@ -21,7 +21,7 @@ public class PlayerStuckState : PlayerState
         CalculateOffset();
     }
 
-    // ¶¯Ì¬´´½¨Ãªµã£¨ÓÃÓÚÁÙÊ±¹ÒÔØµã£©
+    // ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½Ãªï¿½ã£¨ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Øµã£©
     public void CreateAndSetTargetPoint(Transform parent, Vector2 localPos)
     {
         if (player == null || parent == null) return;
@@ -37,7 +37,7 @@ public class PlayerStuckState : PlayerState
         CalculateOffset();
     }
 
-    // ¼ÆËã½ÇÉ«¸ß¶È£¨ÓÃÓÚÃªµãÆ«ÒÆ£©
+    // ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ß¶È£ï¿½ï¿½ï¿½ï¿½ï¿½Ãªï¿½ï¿½Æ«ï¿½Æ£ï¿½
     private void CalculatePlayerHeight()
     {
         if (player == null) return;
@@ -45,7 +45,7 @@ public class PlayerStuckState : PlayerState
         playerHeight = collider != null ? collider.bounds.size.y : 1f;
     }
 
-    // ¼ÆËãÃªµãÆ«ÒÆ
+    // ï¿½ï¿½ï¿½ï¿½Ãªï¿½ï¿½Æ«ï¿½ï¿½
     private void CalculateOffset()
     {
         positionOffset = new Vector3(0, -playerHeight, 0);
@@ -60,25 +60,25 @@ public class PlayerStuckState : PlayerState
         }
     }
 
-    // ½øÈë¹Ò×¡×´Ì¬Ê±³õÊ¼»¯
+    // ï¿½ï¿½ï¿½ï¿½ï¿½×¡×´Ì¬Ê±ï¿½ï¿½Ê¼ï¿½ï¿½
     public override void OnEnter(PlayerController player)
     {
         this.player = player;
         stuckTimer = player.stuckDuration;
         hasHandledJumpInput = false;
 
-        // Ëø¶¨¸ÕÌåÎªÔË¶¯Ñ§Ä£Ê½£¨ÔÝÍ£ÎïÀíÄ£Äâ£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Ë¶ï¿½Ñ§Ä£Ê½ï¿½ï¿½ï¿½ï¿½Í£ï¿½ï¿½ï¿½ï¿½Ä£ï¿½â£©
         player.rb.bodyType = RigidbodyType2D.Kinematic;
         player.rb.gravityScale = 0;
         player.rb.linearVelocity = Vector2.zero;
     }
 
-    // Ã¿Ö¡Âß¼­¸üÐÂ£¨¼ì²âÊäÈë¡¢³¬Ê±£©
+    // Ã¿Ö¡ï¿½ß¼ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë¡¢ï¿½ï¿½Ê±ï¿½ï¿½
     public override void LogicUpdate()
     {
         if (player == null) return;
 
-        // ¼ì²âÌøÔ¾ÊäÈë£¨°´¿Õ¸ñÀë¿ª¹Ò×¡×´Ì¬£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½ï¿½ë£¨ï¿½ï¿½ï¿½Õ¸ï¿½ï¿½ë¿ªï¿½ï¿½×¡×´Ì¬ï¿½ï¿½
         bool jumpPressed = player.inputControl.Player.Jump.IsPressed();
         if (jumpPressed && !hasHandledJumpInput)
         {
@@ -87,7 +87,7 @@ public class PlayerStuckState : PlayerState
             return;
         }
 
-        // ³¬Ê±×Ô¶¯Àë¿ª¹Ò×¡×´Ì¬
+        // ï¿½ï¿½Ê±ï¿½Ô¶ï¿½ï¿½ë¿ªï¿½ï¿½×¡×´Ì¬
         stuckTimer -= Time.deltaTime;
         if (stuckTimer <= 0)
         {
@@ -95,7 +95,7 @@ public class PlayerStuckState : PlayerState
         }
     }
 
-    // ÎïÀí¸üÐÂ£¨±£³Ö½ÇÉ«Î»ÖÃÓëÃªµãÍ¬²½£©
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½Ö½ï¿½É«Î»ï¿½ï¿½ï¿½ï¿½Ãªï¿½ï¿½Í¬ï¿½ï¿½ï¿½ï¿½
     public override void PhysicsUpdate()
     {
         if (player != null && anchorPoint != null)
@@ -105,16 +105,16 @@ public class PlayerStuckState : PlayerState
         }
     }
 
-    // Àë¿ª¹Ò×¡×´Ì¬£¨»Ö¸´ÎïÀí¡¢Ê©¼ÓÁ¦¡¢ÇÐ»»×´Ì¬£©
+    // ï¿½ë¿ªï¿½ï¿½×¡×´Ì¬ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½×´Ì¬ï¿½ï¿½
     private void EscapeStuck()
     {
         if (player == null) return;
 
-        // »Ö¸´¸ÕÌåÎª¶¯Ì¬Ä£Ê½£¨ÆôÓÃÎïÀíÄ£Äâ£©
+        // ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½ï¿½Ì¬Ä£Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä£ï¿½â£©
         player.rb.bodyType = RigidbodyType2D.Dynamic;
         player.rb.gravityScale = player.normalGravityScale;
 
-        // Ê©¼ÓÀë¿ªÁ¦£¨ÈÃ½ÇÉ«µôÂä/µ¯¿ª£©
+        // Ê©ï¿½ï¿½ï¿½ë¿ªï¿½ï¿½ï¿½ï¿½ï¿½Ã½ï¿½É«ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         Vector2 escapeVelocity = Vector2.up * player.jumpForce * 0.4f;
         if (player.inputDirection.x != 0)
         {
@@ -122,11 +122,11 @@ public class PlayerStuckState : PlayerState
         }
         player.rb.linearVelocity = escapeVelocity;
 
-        // ÇÐ»»×´Ì¬£¨ÂäµØÔòÅÜ£¬·ñÔòÏÂÂä£©
+        // ï¿½Ð»ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ü£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ä£©
         player.SwitchState(player.physicsCheck.isGround ? player.runState : player.fallState);
     }
 
-    // Àë¿ª×´Ì¬Ê±ÇåÀí
+    // ï¿½ë¿ª×´Ì¬Ê±ï¿½ï¿½ï¿½ï¿½
     public override void OnExit(PlayerController player)
     {
         CleanupTempPoint();

@@ -13,18 +13,20 @@ public class BackgroundOffset : MonoBehaviour
     [SerializeField] private Transform _character;
     private Material _material;
 
-    [Header("MODIFY")] [SerializeField] private float _xOffsetSpeed = 1f;
+    [Header("MODIFY")][SerializeField] private float _xOffsetSpeed = 1f;
     [SerializeField] private float _yOffsetSpeed = 1f;
 
-    [Header("DO NOT MODIFY")] [SerializeField]
+    [Header("DO NOT MODIFY")]
+    [SerializeField]
     private int[] _triangles;
 
     [SerializeField] private Vector2[] _uvs;
     [SerializeField] private Vector3[] _vertices;
     private Vector3 _lastFramePos = Vector3.zero;
     private CinemachineBrain _brain;
-    private float _height;
-    private float _width;
+    private float _halfHeight;
+    private float _halfWidth;
+    private Vector3 _center;
 
     private void Start()
     {
@@ -33,23 +35,28 @@ public class BackgroundOffset : MonoBehaviour
 
     private void Update()
     {
-        float xOffset = (_character.position.x - _lastFramePos.x) * _xOffsetSpeed;
-        float yOffset = (_character.position.y - _lastFramePos.y) * _yOffsetSpeed;
+        //transform.position = new Vector3(_character.transform.position.x, _character.transform.position.y, 1f);
 
-        Vector3 minMin = new Vector3(_character.transform.position.x - _width, _vertices[0].y, 1f);
-        Vector3 maxMin = new Vector3(_character.transform.position.x + _width, _vertices[1].y, 1f);
-        Vector3 maxMax = new Vector3(_character.transform.position.x + _width, _vertices[2].y, 1f);
-        Vector3 minMax = new Vector3(_character.transform.position.x - _width, _vertices[3].y, 1f);
+        //float xOffset = (transform.position.x - _lastFramePos.x) * _xOffsetSpeed;
+        //float yOffset = (transform.position.y - _lastFramePos.y) * _yOffsetSpeed;
 
-        _vertices = new[] { minMin, maxMin, maxMax, minMax };
+        //Vector3 minMin = new Vector3(transform.position.x - _width, _vertices[0].y, 1f);
+        //Vector3 maxMin = new Vector3(transform.position.x + _width, _vertices[1].y, 1f);
+        //Vector3 maxMax = new Vector3(transform.position.x + _width, _vertices[2].y, 1f);
+        //Vector3 minMax = new Vector3(transform.position.x - _width, _vertices[3].y, 1f);
+
+        //_vertices = new[] { minMin, maxMin, maxMax, minMax };
+
+        float xOffset = (_character.transform.position.x - _lastFramePos.x) * _xOffsetSpeed;
+        float yOffset = (_character.transform.position.y - _lastFramePos.y) * _yOffsetSpeed;
 
         _uvs[0] = new Vector2(_uvs[0].x + xOffset, _uvs[0].y + yOffset);
         _uvs[1] = new Vector2(_uvs[1].x + xOffset, _uvs[1].y + yOffset);
         _uvs[2] = new Vector2(_uvs[2].x + xOffset, _uvs[2].y + yOffset);
         _uvs[3] = new Vector2(_uvs[3].x + xOffset, _uvs[3].y + yOffset);
 
-        _meshFilter.mesh.vertices = _vertices;
-        _meshFilter.mesh.uv = _uvs;
+        //_meshFilter.sharedMesh.vertices = _vertices;
+        _meshFilter.sharedMesh.uv = _uvs;
         _meshRenderer.sharedMaterial.SetVector(CharacterWs, _character.position);
         _lastFramePos = _character.position;
     }
@@ -58,17 +65,14 @@ public class BackgroundOffset : MonoBehaviour
     {
         _brain = Camera.main.GetComponent<CinemachineBrain>();
         Mesh mesh = new Mesh();
-        _height = _brain.OutputCamera.orthographicSize + 7f;
-        _width = _brain.OutputCamera.aspect * _brain.OutputCamera.orthographicSize;
+        _halfHeight = _brain.OutputCamera.orthographicSize + 7f;
+        _halfWidth = _brain.OutputCamera.orthographicSize * _brain.OutputCamera.aspect;
+        _center = _character.transform.position;
 
-        Vector3 minMin = new Vector3(_character.transform.position.x - _width,
-            _character.transform.position.y - _height / 4, 1f);
-        Vector3 maxMin = new Vector3(_character.transform.position.x + _width,
-            _character.transform.position.y - _height / 4, 1f);
-        Vector3 maxMax = new Vector3(_character.transform.position.x + _width,
-            _character.transform.position.y + _height, 1f);
-        Vector3 minMax = new Vector3(_character.transform.position.x - _width,
-            _character.transform.position.y + _height, 1f);
+        Vector3 minMin = new Vector3(-_halfWidth, -_halfHeight / 4, 1f);
+        Vector3 maxMin = new Vector3(_halfWidth, -_halfHeight / 4, 1f);
+        Vector3 maxMax = new Vector3(_halfWidth, _halfHeight, 1f);
+        Vector3 minMax = new Vector3(-_halfWidth, _halfHeight, 1f);
 
         _triangles = new[] { 0, 1, 2, 0, 2, 3 };
         _vertices = new[] { minMin, maxMin, maxMax, minMax };

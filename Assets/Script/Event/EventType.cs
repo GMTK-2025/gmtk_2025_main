@@ -41,6 +41,7 @@
 
     public enum CharacterEventType
     {
+        CHARACTER_HURT,
     }
 
     public enum ActivityEventType
