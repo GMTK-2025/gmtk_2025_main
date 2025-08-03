@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
-using DG.Tweening.Core.Easing;
+using UnityEngine.Audio;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(PhysicsCheck))]
 public class PlayerController : MonoBehaviour
@@ -66,13 +66,29 @@ public class PlayerController : MonoBehaviour
     public float hurtForceX = 3f;
     public float hurtForceY = 5f;
 
-    // 状态系统
+    // 状态系统（包含死亡状态）
     [HideInInspector] public PlayerState currentState;
     [HideInInspector] public PlayerRunState runState;
     [HideInInspector] public PlayerJumpState jumpState;
     [HideInInspector] public PlayerFallState fallState;
     [HideInInspector] public PlayerVineHangingState vineHangingState;
     [HideInInspector] public PlayerHurtState hurtState;
+    [HideInInspector] public PlayerWinState winState;
+    [HideInInspector] public PlayerDeadState deadState; // 死亡状态
+
+
+    [Header("音频设置")]
+    public AudioClip runSound;
+    public AudioClip jumpSound;
+    public AudioClip restoreSound;
+    public AudioClip ghostSound;
+    public AudioClip treadSound;
+    public AudioClip hurtSound;
+    public AudioClip winSound;
+    public AudioClip dieSound;       // 死亡音效（需在Inspector赋值）
+    public AudioClip climbSound;
+
+    private AudioSource audioSource;
 
     // 分身系统关联
     [Header("系统引用")]
@@ -84,7 +100,7 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         physicsCheck = GetComponent<PhysicsCheck>();
 
-        // 初始化所有状态
+        // 初始化所有状态（必须包含死亡状态）
         runState = new PlayerRunState();
         jumpState = new PlayerJumpState();
         stuckState = new PlayerStuckState();
@@ -92,11 +108,22 @@ public class PlayerController : MonoBehaviour
         vineHangingState = new PlayerVineHangingState();
         hurtState = new PlayerHurtState();
         climbState = new PlayerClimbState();
+        winState = new PlayerWinState();
+        deadState = new PlayerDeadState(); // 初始化死亡状态
 
         if (ghostSystem == null)
         {
             ghostSystem = FindObjectOfType<GhostSystem>();
         }
+
+        // 初始化音效组件
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+        }
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0; // 2D音效
     }
 
     private void OnEnable()
@@ -121,11 +148,13 @@ public class PlayerController : MonoBehaviour
             inputDirection = inputControl.Player.Move.ReadValue<Vector2>();
             currentState.LogicUpdate();
 
+            // 重置跳跃计数（地面检测）
             if (physicsCheck.isGround)
             {
                 currentJumpCount = 0;
             }
 
+            // 无敌状态计时
             if (isInvincible)
             {
                 invincibleTimer -= Time.deltaTime;
@@ -142,6 +171,9 @@ public class PlayerController : MonoBehaviour
         currentState?.PhysicsUpdate();
     }
 
+    /// <summary>
+    /// 状态切换方法
+    /// </summary>
     public void SwitchState(PlayerState newState)
     {
         currentState?.OnExit(this);
@@ -151,9 +183,7 @@ public class PlayerController : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        // 移除移动物体的碰撞检测，现在通过触发器处理
-
-        // 窗帘碰撞
+        // 窗帘碰撞（挂住状态）
         if (collision.gameObject.CompareTag("Curtain") && currentState != stuckState)
         {
             ContactPoint2D contact = collision.GetContact(0);
@@ -170,10 +200,12 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // 障碍物碰撞
+        // 障碍物碰撞（受伤状态）
         if (collision.gameObject.CompareTag("Obstacle") && !isInvincible)
         {
+            hurtState.SetDamageSource(collision.gameObject);
             SwitchState(hurtState);
+
             Vector2 knockbackDirection = (transform.position - collision.transform.position).normalized;
             rb.linearVelocity = Vector2.zero;
             rb.AddForce(new Vector2(knockbackDirection.x * hurtForceX, hurtForceY), ForceMode2D.Impulse);
@@ -184,24 +216,30 @@ public class PlayerController : MonoBehaviour
            currentState != climbState &&
            currentState != hurtState &&
            currentState != stuckState &&
-           currentState != vineHangingState)
+           currentState != vineHangingState &&
+           currentState != deadState) // 死亡状态下不切换攀爬
         {
             climbState.SetClimbableObject(collision.transform);
             SwitchState(climbState);
         }
     }
 
-
+    /// <summary>
+    /// 触发器检测（游戏结束区域）
+    /// </summary>
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("GameOverZone"))
+        if (other.CompareTag("GameOverZone") && currentState != deadState) // 死亡状态下不触发胜利
         {
-            Debug.Log("游戏结束");
+            Debug.Log("检测到游戏结束区域，切换到胜利状态");
+            SwitchState(winState);
         }
     }
+
     private void OnTriggerStay2D(Collider2D other)
     {
-        if (collVine != null && collVine.IsTouching(other))
+        // 藤蔓悬挂检测（死亡状态下不触发）
+        if (currentState != deadState && collVine != null && collVine.IsTouching(other))
         {
             if (currentState != vineHangingState && currentState != stuckState)
             {
@@ -216,7 +254,8 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerExit2D(Collider2D other)
     {
-        if (collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState)
+        // 离开藤蔓检测（死亡状态下不处理）
+        if (currentState != deadState && collVine != null && !collVine.IsTouching(other) && currentState == vineHangingState)
         {
             vineHangingState.UpdateVineContact(false);
         }
@@ -239,5 +278,36 @@ public class PlayerController : MonoBehaviour
     private bool IsClimbable(GameObject obj)
     {
         return (climbLayer.value & (1 << obj.layer)) != 0;
+    }
+
+    // 播放单次音效（死亡音效调用此方法）
+    public void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
+    }
+
+    // 循环播放音效
+    public void PlayLoopSound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null && !audioSource.isPlaying)
+        {
+            audioSource.clip = clip;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+    }
+
+    // 停止循环音效
+    public void StopLoopSound()
+    {
+        if (audioSource != null && audioSource.loop)
+        {
+            audioSource.Stop();
+            audioSource.loop = false;
+            audioSource.clip = null;
+        }
     }
 }

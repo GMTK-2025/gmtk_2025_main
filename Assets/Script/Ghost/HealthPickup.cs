@@ -10,20 +10,26 @@ public class HealthPickup : MonoBehaviour
     [Tooltip("拾取后是否销毁物体")]
     public bool destroyOnPickup = true;
 
+    [Tooltip("物体销毁延迟时间（秒），0=立即销毁")]
+    public float destroyDelay = 0f; // 新增：自定义销毁延迟
+
+    [Header("音频设置")]
+    [Tooltip("拾取时播放的音效")]
+    public AudioClip pickupSound;
+
+    [Range(0, 1)]
+    public float soundVolume = 1f; // 音效音量
+
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // 检测碰撞对象是否为玩家
         if (other.CompareTag("Player"))
         {
-            // 获取玩家控制器
             PlayerController player = other.GetComponent<PlayerController>();
             if (player != null)
             {
-                // 通过玩家控制器获取GhostSystem（生命值管理在这里）
                 GhostSystem ghostSystem = player.GetGhostSystem();
                 if (ghostSystem != null)
                 {
-                    // 尝试恢复生命值
                     RestoreHealth(ghostSystem);
                 }
             }
@@ -32,20 +38,54 @@ public class HealthPickup : MonoBehaviour
 
     private void RestoreHealth(GhostSystem ghostSystem)
     {
-        // 检查是否可以恢复生命值（未达到最大值）
         if (ghostSystem.currentLives < ghostSystem.maxLives)
         {
-            // 增加生命值，不超过最大值
+            // 恢复生命值
             ghostSystem.currentLives = Mathf.Min(
                 ghostSystem.currentLives + healthRestoreAmount,
                 ghostSystem.maxLives
             );
 
-            // 销毁拾取物
-            if (destroyOnPickup)
-            {
-                Destroy(gameObject);
-            }
+           
+            PlayPickupSound();
+
+           
+            HandleDestroy();
         }
+    }
+
+    
+    private void PlayPickupSound()
+    {
+        if (pickupSound == null) return;
+
+        // 创建临时游戏对象用于播放音效
+        GameObject soundPlayer = new GameObject("PickupSoundPlayer");
+        // 将临时对象放在拾取物位置
+        soundPlayer.transform.position = transform.position;
+
+        // 添加音频源组件
+        AudioSource tempAudio = soundPlayer.AddComponent<AudioSource>();
+        tempAudio.clip = pickupSound;
+        tempAudio.volume = soundVolume;
+        tempAudio.spatialBlend = 0;
+        tempAudio.Play(); 
+
+        // 音效播放完毕后自动销毁临时对象
+        Destroy(soundPlayer, pickupSound.length);
+    }
+
+    // 处理物体销毁：按自定义延迟时间执行
+    private void HandleDestroy()
+    {
+        if (!destroyOnPickup) return;
+
+        // 立即禁用碰撞体和渲染
+        GetComponent<Collider2D>().enabled = false;
+        Renderer renderer = GetComponent<Renderer>();
+        if (renderer != null) renderer.enabled = false;
+
+        // 延迟销毁物体
+        Destroy(gameObject, destroyDelay);
     }
 }
