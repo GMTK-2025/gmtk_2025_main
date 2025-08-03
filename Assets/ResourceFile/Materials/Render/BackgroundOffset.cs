@@ -33,13 +33,15 @@ public class BackgroundOffset : MonoBehaviour
 
     private void Update()
     {
+        transform.position = new Vector3(_character.transform.position.x, _character.transform.position.y, 1f);
+        
         float xOffset = (_character.position.x - _lastFramePos.x) * _xOffsetSpeed;
         float yOffset = (_character.position.y - _lastFramePos.y) * _yOffsetSpeed;
 
-        Vector3 minMin = new Vector3(_character.transform.position.x - _width, _vertices[0].y, 1f);
-        Vector3 maxMin = new Vector3(_character.transform.position.x + _width, _vertices[1].y, 1f);
-        Vector3 maxMax = new Vector3(_character.transform.position.x + _width, _vertices[2].y, 1f);
-        Vector3 minMax = new Vector3(_character.transform.position.x - _width, _vertices[3].y, 1f);
+        Vector3 minMin = new Vector3(transform.position.x - _width, _vertices[0].y, 1f);
+        Vector3 maxMin = new Vector3(transform.position.x + _width, _vertices[1].y, 1f);
+        Vector3 maxMax = new Vector3(transform.position.x + _width, _vertices[2].y, 1f);
+        Vector3 minMax = new Vector3(transform.position.x - _width, _vertices[3].y, 1f);
 
         _vertices = new[] { minMin, maxMin, maxMax, minMax };
 

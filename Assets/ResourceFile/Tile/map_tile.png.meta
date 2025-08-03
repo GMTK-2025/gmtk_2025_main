@@ -34,7 +34,7 @@ TextureImporter:
   maxTextureSize: 2048
   textureSettings:
     serializedVersion: 2
-    filterMode: 1
+    filterMode: 0
     aniso: 1
     mipBias: 0
     wrapU: 1
@@ -101,19 +101,19 @@ TextureImporter:
       rect:
         serializedVersion: 2
         x: 0
-        y: 0
+        y: 600
         width: 200
         height: 200
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: a5dd8473a4447c1409320cc04d53133a
-      internalID: -127950948
+      spriteID: 44d7edc7feaba6a43bdc0e1c04600aa5
+      internalID: 325806268
       vertices: []
       indices: 
       edges: []
@@ -122,20 +122,20 @@ TextureImporter:
       name: map_tile_1
       rect:
         serializedVersion: 2
-        x: 200
-        y: 0
+        x: 0
+        y: 400
         width: 200
         height: 200
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 494d2f408a9f99447832b05a525cd193
-      internalID: 2142726618
+      spriteID: 7fe9e01866f41f14e8f8862939b0b47e
+      internalID: 178712264
       vertices: []
       indices: 
       edges: []
@@ -144,20 +144,20 @@ TextureImporter:
       name: map_tile_2
       rect:
         serializedVersion: 2
-        x: 400
-        y: 0
+        x: 0
+        y: 200
         width: 200
         height: 200
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: beeb39205ee2a1e488ff5fcdb640f63b
-      internalID: -1024210071
+      spriteID: 966da996caa44994c84ae48ae5ea77ce
+      internalID: 948759243
       vertices: []
       indices: 
       edges: []
@@ -166,20 +166,86 @@ TextureImporter:
       name: map_tile_3
       rect:
         serializedVersion: 2
-        x: 600
+        x: 0
         y: 0
         width: 200
         height: 200
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: fd2f59a0b8fcb4c428f1d003c109eaa6
-      internalID: -431951186
+      spriteID: 4d6579a0fe0d6e04d87b5a032573ab76
+      internalID: -2065692440
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: map_tile_4
+      rect:
+        serializedVersion: 2
+        x: 200
+        y: 0
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 060ac2e9ebb3bf742864cb14788cb1c2
+      internalID: 1347329011
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: map_tile_5
+      rect:
+        serializedVersion: 2
+        x: 400
+        y: 0
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f8888ea71e6aa474f926082a9ea1d643
+      internalID: -1671191416
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: map_tile_6
+      rect:
+        serializedVersion: 2
+        x: 600
+        y: 0
+        width: 200
+        height: 200
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 441e78cce9ea4ff449c8de6e1d1eec45
+      internalID: 1690111279
       vertices: []
       indices: 
       edges: []
@@ -188,7 +254,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 2fce64e598960a343aaf0c574c8ce0e0
+    spriteID: 08bd802f9b5350548891cc4552ba3921
     internalID: 0
     vertices: []
     indices: 
@@ -198,10 +264,13 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      map_tile_0: -127950948
-      map_tile_1: 2142726618
-      map_tile_2: -1024210071
-      map_tile_3: -431951186
+      map_tile_0: 325806268
+      map_tile_1: 178712264
+      map_tile_2: 948759243
+      map_tile_3: -2065692440
+      map_tile_4: 1347329011
+      map_tile_5: -1671191416
+      map_tile_6: 1690111279
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
