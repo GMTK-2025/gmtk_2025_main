@@ -10,7 +10,7 @@ public enum PlayerStateType
     Fall,
     Stuck,
     VineHanging,
-    Dead // 死亡状态枚举
+    Dead
 }
 
 [System.Serializable]
@@ -30,8 +30,6 @@ public class GhostRecording
     public List<GhostFrame> frames = new List<GhostFrame>();
     public float startTime;
     [HideInInspector] public bool isRecording;
-    [HideInInspector] public Vector3 startPosition;
-    [HideInInspector] public Quaternion startRotation;
 }
 
 public class GhostSystem : MonoBehaviour
@@ -40,19 +38,17 @@ public class GhostSystem : MonoBehaviour
     public class GhostPlayer
     {
         public GhostRecording recording;
-        [HideInInspector] public GameObject ghostObject;
-        [HideInInspector] public int currentFrame;
-        [HideInInspector] public bool isPlaying;
-        [HideInInspector] public float startTime;
-        [HideInInspector] public PlayerController ghostController;
+        public GameObject ghostObject;
+        public int currentFrame;
+        public bool isPlaying;
+        public float startTime;
+        public PlayerController ghostController;
     }
 
     [Header("基本设置")]
     public PlayerController playerController;
     public GameObject playerPrefab;
-    public int maxLives = 9; // 最大生命值=最大分身数
-
-    [Header("物理设置")]
+    public int maxLives = 9;
     public string ghostTag = "Ghost";
     public LayerMask playerLayer;
 
@@ -60,7 +56,7 @@ public class GhostSystem : MonoBehaviour
     public float recordInterval = 0.05f;
 
     [Header("音频设置")]
-    public AudioClip actionSound; // 通用动作音效
+    public AudioClip actionSound;
     [Range(0, 1)] public float soundVolume = 1f;
     private AudioSource audioSource;
 
@@ -68,42 +64,38 @@ public class GhostSystem : MonoBehaviour
     [SerializeField] private List<GhostPlayer> activeGhosts = new List<GhostPlayer>();
     [SerializeField] private GhostRecording currentRecording;
     [SerializeField] private bool isRecording;
-    [SerializeField] public int currentLives; // 当前生命值=剩余可分身数
+    [SerializeField] public int currentLives;
     private float lastRecordTime;
-
+    private bool recordingQueued;
+    //currentlives
     private void Start()
     {
-        currentLives = maxLives; // 初始化生命值
+        currentLives = maxLives;
+        isRecording = false;
+        recordingQueued = false;
+
         Physics2D.IgnoreLayerCollision(
             LayerMask.NameToLayer("Ghost"),
             LayerMask.NameToLayer("Player"),
             true
         );
 
-        // 初始化音频源
-        audioSource = GetComponent<AudioSource>();
-        if (audioSource == null)
-        {
-            audioSource = gameObject.AddComponent<AudioSource>();
-        }
+        audioSource = gameObject.AddComponent<AudioSource>();
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0f;
     }
 
-    void Update()
+    private void Update()
     {
-        // 核心逻辑：生命值≤0且未处于死亡状态时触发死亡
         if (currentLives <= 0 && playerController.currentState != playerController.deadState)
         {
             TriggerPlayerDeath();
+            return;
         }
 
-        if (Keyboard.current.rKey.wasPressedThisFrame && playerController.currentState != playerController.deadState)
-        {
-            ToggleRecording();
-        }
+        HandleRecordingInput();
 
-        if (isRecording && playerController.currentState != playerController.deadState)
+        if (isRecording)
         {
             TryRecordFrame();
         }
@@ -111,54 +103,44 @@ public class GhostSystem : MonoBehaviour
         UpdateAllGhosts();
     }
 
-    // 触发死亡状态
-    private void TriggerPlayerDeath()
-    {
-        Debug.Log("生命值耗尽，进入死亡状态");
-        // 切换到死亡状态（音效在PlayerDeadState的OnEnter中播放）
-        playerController.SwitchState(playerController.deadState);
-    }
-
-    void ToggleRecording()
-    {
-        if (isRecording)
-        {
-            StopRecording();
-            if (currentRecording.frames.Count > 0)
-            {
-                CreateGhost();
-                TeleportPlayerToStartPosition();
-            }
-        }
-        else if (CanStartRecording())
-        {
-            StartRecording();
-        }
-    }
-
-    void TeleportPlayerToStartPosition()
-    {
-        if (currentRecording != null)
-        {
-            playerController.transform.position = currentRecording.startPosition;
-            playerController.transform.rotation = currentRecording.startRotation;
-            playerController.rb.linearVelocity = Vector2.zero;
-        }
-    }
-
-    bool CanStartRecording()
+    private bool CanStartRecording()
     {
         return currentLives > 0 && activeGhosts.Count < maxLives;
     }
 
-    void StartRecording()
+    private void HandleRecordingInput()
+    {
+        if (Keyboard.current.rKey.wasPressedThisFrame && playerController.currentState != playerController.deadState)
+        {
+            if (!isRecording && !recordingQueued && CanStartRecording())
+            {
+                recordingQueued = true;
+                StartCoroutine(StartRecordingDelayed());
+            }
+            else if (isRecording)
+            {
+                StopRecording();
+                if (currentRecording.frames.Count > 0)
+                {
+                    CreateGhost();
+                }
+            }
+        }
+    }
+
+    private IEnumerator StartRecordingDelayed()
+    {
+        yield return null;
+        StartRecording();
+        recordingQueued = false;
+    }
+
+    private void StartRecording()
     {
         currentRecording = new GhostRecording
         {
             startTime = Time.time,
-            isRecording = true,
-            startPosition = playerController.transform.position,
-            startRotation = playerController.transform.rotation
+            isRecording = true
         };
         isRecording = true;
         lastRecordTime = Time.time;
@@ -166,7 +148,14 @@ public class GhostSystem : MonoBehaviour
         PlayActionSound();
     }
 
-    void TryRecordFrame()
+    private void StopRecording()
+    {
+        isRecording = false;
+        currentRecording.isRecording = false;
+        Debug.Log($"停止录制，共录制了 {currentRecording.frames.Count} 帧动作");
+    }
+
+    private void TryRecordFrame()
     {
         if (Time.time - lastRecordTime >= recordInterval)
         {
@@ -175,7 +164,7 @@ public class GhostSystem : MonoBehaviour
         }
     }
 
-    void RecordFrame()
+    private void RecordFrame()
     {
         var frame = new GhostFrame
         {
@@ -189,38 +178,24 @@ public class GhostSystem : MonoBehaviour
         currentRecording.frames.Add(frame);
     }
 
-    // 完整的状态转换方法（包含死亡状态）
-    PlayerStateType ConvertStateToEnum(PlayerState state)
+    private PlayerStateType ConvertStateToEnum(PlayerState state)
     {
         if (state is PlayerRunState) return PlayerStateType.Run;
         if (state is PlayerJumpState) return PlayerStateType.Jump;
         if (state is PlayerFallState) return PlayerStateType.Fall;
         if (state is PlayerStuckState) return PlayerStateType.Stuck;
         if (state is PlayerVineHangingState) return PlayerStateType.VineHanging;
-        if (state is PlayerDeadState) return PlayerStateType.Dead; // 死亡状态转换
-        return PlayerStateType.Run; // 默认状态
+        if (state is PlayerDeadState) return PlayerStateType.Dead;
+        return PlayerStateType.Run;
     }
 
-    void StopRecording()
+    private void CreateGhost()
     {
-        isRecording = false;
-        currentRecording.isRecording = false;
-        Debug.Log($"停止录制，共录制了 {currentRecording.frames.Count} 帧动作");
-    }
-
-    // 创建分身时减少生命值
-    void CreateGhost()
-    {
-        if (currentLives <= 0)
-        {
-            Debug.LogWarning("生命值不足，无法创建分身！");
-            return;
-        }
+        if (currentLives <= 0) return;
 
         currentLives--;
         Debug.Log($"创建分身，当前生命值: {currentLives}/{maxLives}");
 
-        // 创建分身时播放音效
         PlayActionSound();
 
         GameObject ghostObj = Instantiate(
@@ -228,8 +203,30 @@ public class GhostSystem : MonoBehaviour
             currentRecording.frames[0].position,
             currentRecording.frames[0].rotation
         );
-        ghostObj.name = "Ghost_" + Time.time.ToString("F2");
+        ghostObj.name = $"Ghost_{Time.time:F2}";
 
+        SetupGhostObject(ghostObj);
+
+        GhostPlayer ghost = new GhostPlayer
+        {
+            recording = currentRecording,
+            ghostObject = ghostObj,
+            isPlaying = true,
+            currentFrame = 0,
+            startTime = Time.time,
+            ghostController = ghostObj.GetComponent<PlayerController>()
+        };
+
+        ghost.ghostController.enabled = false;
+        ghostObj.AddComponent<GhostCollisionHandler>().Initialize(playerLayer);
+        ghostObj.AddComponent<GhostReplayer>().Initialize(ghost);
+
+        activeGhosts.Add(ghost);
+        CheckGhostLimit();
+    }
+
+    private void SetupGhostObject(GameObject ghostObj)
+    {
         ghostObj.tag = ghostTag;
         ghostObj.layer = LayerMask.NameToLayer("Ghost");
 
@@ -240,12 +237,6 @@ public class GhostSystem : MonoBehaviour
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
         }
 
-        var ghostController = ghostObj.GetComponent<PlayerController>();
-        if (ghostController != null)
-        {
-            ghostController.enabled = false;
-        }
-
         var inputComponents = ghostObj.GetComponents<MonoBehaviour>();
         foreach (var comp in inputComponents)
         {
@@ -254,35 +245,9 @@ public class GhostSystem : MonoBehaviour
                 Destroy(comp);
             }
         }
-
-        ghostObj.AddComponent<GhostCollisionHandler>().Initialize(playerLayer);
-
-        GhostPlayer ghost = new GhostPlayer
-        {
-            recording = currentRecording,
-            ghostObject = ghostObj,
-            isPlaying = true,
-            currentFrame = 0,
-            startTime = Time.time,
-            ghostController = ghostController
-        };
-
-        var replayer = ghostObj.AddComponent<GhostReplayer>();
-        replayer.Initialize(ghost);
-
-        activeGhosts.Add(ghost);
     }
 
-    // 播放动作音效
-    private void PlayActionSound()
-    {
-        if (actionSound != null && audioSource != null)
-        {
-            audioSource.PlayOneShot(actionSound, soundVolume);
-        }
-    }
-
-    void UpdateAllGhosts()
+    private void UpdateAllGhosts()
     {
         for (int i = activeGhosts.Count - 1; i >= 0; i--)
         {
@@ -298,74 +263,99 @@ public class GhostSystem : MonoBehaviour
         }
     }
 
-    void UpdateGhost(GhostPlayer ghost)
+    private void UpdateGhost(GhostPlayer ghost)
     {
         float currentTime = Time.time - ghost.startTime;
+        var frames = ghost.recording.frames;
 
-        while (ghost.currentFrame < ghost.recording.frames.Count - 1 &&
-               ghost.recording.frames[ghost.currentFrame + 1].timeStamp <= currentTime)
+        while (ghost.currentFrame < frames.Count - 1 &&
+               frames[ghost.currentFrame + 1].timeStamp <= currentTime)
         {
             ghost.currentFrame++;
         }
 
-        GhostFrame frame = ghost.recording.frames[ghost.currentFrame];
-
-        ghost.ghostObject.transform.position = frame.position;
-        ghost.ghostObject.transform.rotation = frame.rotation;
-
-        if (ghost.ghostController != null && ghost.ghostController.rb != null)
-        {
-            ghost.ghostController.rb.linearVelocity = frame.velocity;
-        }
-
-        if (ghost.ghostController != null && ghost.ghostController.physicsCheck != null)
-        {
-            ghost.ghostController.physicsCheck.isGround = frame.isGrounded;
-        }
+        GhostFrame frame = frames[ghost.currentFrame];
+        ghost.ghostObject.transform.SetPositionAndRotation(frame.position, frame.rotation);
 
         if (ghost.ghostController != null)
         {
+            if (ghost.ghostController.rb != null)
+            {
+                ghost.ghostController.rb.linearVelocity = frame.velocity;
+            }
+
+            if (ghost.ghostController.physicsCheck != null)
+            {
+                ghost.ghostController.physicsCheck.isGround = frame.isGrounded;
+            }
+
             ForcePlayerState(ghost.ghostController, frame.stateType);
         }
     }
 
-    // 强制设置分身状态（包含死亡状态）
-    void ForcePlayerState(PlayerController controller, PlayerStateType stateType)
+    private void ForcePlayerState(PlayerController controller, PlayerStateType stateType)
     {
-        PlayerState newState = null;
-
-        switch (stateType)
+        PlayerState newState = stateType switch
         {
-            case PlayerStateType.Run:
-                newState = new PlayerRunState();
-                break;
-            case PlayerStateType.Jump:
-                newState = new PlayerJumpState();
-                break;
-            case PlayerStateType.Fall:
-                newState = new PlayerFallState();
-                break;
-            case PlayerStateType.Stuck:
-                newState = new PlayerStuckState();
-                break;
-            case PlayerStateType.VineHanging:
-                newState = new PlayerVineHangingState();
-                break;
-            case PlayerStateType.Dead:  // 处理死亡状态
-                newState = new PlayerDeadState();
-                break;
-        }
+            PlayerStateType.Run => new PlayerRunState(),
+            PlayerStateType.Jump => new PlayerJumpState(),
+            PlayerStateType.Fall => new PlayerFallState(),
+            PlayerStateType.Stuck => new PlayerStuckState(),
+            PlayerStateType.VineHanging => new PlayerVineHangingState(),
+            PlayerStateType.Dead => new PlayerDeadState(),
+            _ => new PlayerRunState()
+        };
 
-        if (newState != null && controller.currentState.GetType() != newState.GetType())
+        if (controller.currentState.GetType() != newState.GetType())
         {
             controller.SwitchState(newState);
         }
     }
 
-    void ResetGhostPlayback(GhostPlayer ghost)
+    private void ResetGhostPlayback(GhostPlayer ghost)
     {
         ghost.currentFrame = 0;
         ghost.startTime = Time.time;
+    }
+
+    private void CheckGhostLimit()
+    {
+        while (activeGhosts.Count > 3 && activeGhosts.Count > 0)
+        {
+            GhostPlayer oldestGhost = activeGhosts[0];
+            foreach (var ghost in activeGhosts)
+            {
+                if (ghost.startTime < oldestGhost.startTime)
+                {
+                    oldestGhost = ghost;
+                }
+            }
+            RecycleGhost(oldestGhost);
+        }
+    }
+
+    public void RecycleGhost(GhostPlayer ghost)
+    {
+        if (ghost == null || ghost.ghostObject == null) return;
+
+        Destroy(ghost.ghostObject);
+        activeGhosts.Remove(ghost);
+        // 移除了恢复生命值的代码
+        Debug.Log($"回收分身");
+    }
+
+    private void PlayActionSound()
+    {
+        if (actionSound != null)
+        {
+            audioSource.PlayOneShot(actionSound, soundVolume);
+        }
+    }
+
+    private void TriggerPlayerDeath()
+    {
+        Debug.Log("生命值耗尽，进入死亡状态");
+        playerController.SwitchState(playerController.deadState);
     }
 
     public void RemoveAllGhosts()
@@ -378,7 +368,7 @@ public class GhostSystem : MonoBehaviour
             }
         }
         activeGhosts.Clear();
-        currentLives = maxLives; // 重置生命值
+        currentLives = maxLives;
         Debug.Log("所有分身已清除，生命值重置");
     }
 }
@@ -396,7 +386,6 @@ public class GhostCollisionHandler : MonoBehaviour
     IEnumerator DelayedCollisionSetup()
     {
         yield return new WaitForFixedUpdate();
-
         int ghostLayer = LayerMask.NameToLayer("Ghost");
         int playerLayerID = (int)Mathf.Log(playerLayer.value, 2);
         Physics2D.IgnoreLayerCollision(ghostLayer, playerLayerID, true);
@@ -405,12 +394,9 @@ public class GhostCollisionHandler : MonoBehaviour
         {
             if (ghost != gameObject)
             {
-                var myColliders = GetComponents<Collider2D>();
-                var otherColliders = ghost.GetComponents<Collider2D>();
-
-                foreach (var myCol in myColliders)
+                foreach (var myCol in GetComponents<Collider2D>())
                 {
-                    foreach (var otherCol in otherColliders)
+                    foreach (var otherCol in ghost.GetComponents<Collider2D>())
                     {
                         Physics2D.IgnoreCollision(myCol, otherCol, true);
                     }
@@ -427,10 +413,5 @@ public class GhostReplayer : MonoBehaviour
     public void Initialize(GhostSystem.GhostPlayer data)
     {
         ghostData = data;
-    }
-
-    void Update()
-    {
-        // 分身重放逻辑由GhostSystem统一管理
     }
 }

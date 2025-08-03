@@ -11,6 +11,8 @@ public class PlayerController : MonoBehaviour
     [HideInInspector] public Vector2 inputDirection;
     [HideInInspector] public Rigidbody2D rb;
     [HideInInspector] public PhysicsCheck physicsCheck;
+    [HideInInspector] public PlayerAnimationManager animManager;
+
 
     // 藤蔓碰撞体
     public Collider2D collVine;
@@ -87,6 +89,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip winSound;
     public AudioClip dieSound;       // 死亡音效（需在Inspector赋值）
     public AudioClip climbSound;
+    [Range(0f, 1f)] public float hurtSoundVolume = 0.7f; // 受伤音效音量控制
 
     private AudioSource audioSource;
 
@@ -124,6 +127,13 @@ public class PlayerController : MonoBehaviour
         }
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0; // 2D音效
+        animManager = GetComponent<PlayerAnimationManager>();
+        if (animManager == null)
+        {
+            // 如果没有组件则自动添加（可选，避免手动挂载遗漏）
+            animManager = gameObject.AddComponent<PlayerAnimationManager>();
+            Debug.LogWarning("PlayerController自动添加了PlayerAnimationManager组件");
+        }
     }
 
     private void OnEnable()
@@ -280,13 +290,19 @@ public class PlayerController : MonoBehaviour
         return (climbLayer.value & (1 << obj.layer)) != 0;
     }
 
-    // 播放单次音效（死亡音效调用此方法）
-    public void PlaySound(AudioClip clip)
+    // 播放带指定音量的单次音效（新增重载方法）
+    public void PlaySound(AudioClip clip, float volume)
     {
         if (clip != null && audioSource != null)
         {
-            audioSource.PlayOneShot(clip);
+            audioSource.PlayOneShot(clip, volume);
         }
+    }
+
+    // 保留原有的无参重载（兼容其他地方的调用，使用默认音量1）
+    public void PlaySound(AudioClip clip)
+    {
+        PlaySound(clip, 1f);
     }
 
     // 循环播放音效
