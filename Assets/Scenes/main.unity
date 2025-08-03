@@ -9410,6 +9410,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIRoot
       objectReference: {fileID: 0}
+    - target: {fileID: 1578960127121899111, guid: 0f8cc347563a49948b89466c51a5dcee, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
