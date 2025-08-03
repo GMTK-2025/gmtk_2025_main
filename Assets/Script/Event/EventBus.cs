@@ -207,11 +207,13 @@ namespace Event
         private static BaseEventBus<ActivityEventType> _activity;
         private static BaseEventBus<RoundEventType> _round;
         private static BaseEventBus<AnimationEventType> _animation;
+        private static BaseEventBus<PlayerEventType> _player;
         public static BaseEventBus<InputStateType> InputState =>
             _inputState ??= new InputStateEventBus();
 
         public static BaseEventBus<GameEventType> Game => _game ??= new GameEventBus();
         public static BaseEventBus<InputEventType> Input => _input ??= new InputEventBus();
+        public static BaseEventBus<PlayerEventType> Player => _player ??= new PlayerEventBus();
         public static BaseEventBus<BackpackEventType> Backpack => _backpack ??= new BackpackEventBus();
         public static BaseEventBus<CharacterEventType> Character => _character ??= new CharacterEventBus();
         public static BaseEventBus<SceneEventType> Scene => _scene ??= new SceneEventBus();
