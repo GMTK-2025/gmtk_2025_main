@@ -87,6 +87,7 @@ public class MovingObject : MonoBehaviour
             Gizmos.color = Color.cyan;
             Gizmos.DrawLine(startPoint.position, endPoint.position);
             Gizmos.DrawSphere(startPoint.position, 0.1f);
+            Gizmos.color = Color.black;
             Gizmos.DrawSphere(endPoint.position, 0.1f);
         }
     }
