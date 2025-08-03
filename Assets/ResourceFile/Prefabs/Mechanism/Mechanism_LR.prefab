@@ -194,7 +194,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cc85d4d7113f21242a24afe04cbdac2e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  buttonPlatform: {fileID: 2439422505169701632}
+  buttonPlatform: {fileID: 7733546953191539485}
 --- !u!1 &3856389640355689810
 GameObject:
   m_ObjectHideFlags: 0
@@ -280,41 +280,28 @@ PrefabInstance:
       propertyPath: m_Name
       value: Button01
       objectReference: {fileID: 0}
+    - target: {fileID: 5994972170072141886, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
+      propertyPath: platform
+      value: 
+      objectReference: {fileID: 5451269423284439167}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 4955013189468202323, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2439422505169701632}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
 --- !u!4 &626392665619049506 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3517342474759298817, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
   m_PrefabInstance: {fileID: 4062660932512903971}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &8980959040023123568 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4955013189468202323, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
+--- !u!114 &7733546953191539485 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5994972170072141886, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
   m_PrefabInstance: {fileID: 4062660932512903971}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2439422505169701632
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8980959040023123568}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7dce9b90ac43ec34eb9edc3cd90f1728, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  platform: {fileID: 5451269423284439167}
-  platformMoveDistance: 10
-  buttonPressDepth: 0.2
-  moveSpeed: 3
-  edgeDetectionBuffer: 0.15
-  stateChangeDelay: 0.2
-  buttonPressSound: {fileID: 0}
-  soundVolume: 1

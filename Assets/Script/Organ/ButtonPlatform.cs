@@ -77,11 +77,11 @@ public class ButtonPlatform : MonoBehaviour
         // 更新上一帧状态
         wasPressedLastFrame = isButtonPressed;
 
-        if (hasObjects)
-        {
-            targetPos = originalPlatformPosition;
-        }
-        else
+        //if (hasObjects)
+        //{
+        //    targetPos = originalPlatformPosition;
+        //}
+        //else
         {
             targetPos = isButtonPressed ? leftPosition : originalPlatformPosition;
         }
