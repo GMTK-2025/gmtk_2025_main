@@ -7,7 +7,7 @@ public class Game : Singleton<Game>
 {
     private RespawnController _respawn;
     private GCharacterController _gCharacter;
-
+    private 
     public RespawnController Respawn => _respawn;
     public GCharacterController GCharacter => _gCharacter;
 

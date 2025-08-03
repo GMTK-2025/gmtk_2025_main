@@ -139,7 +139,7 @@ MonoBehaviour:
   moveSpeed: 5
   button1: {fileID: 4849570317052064280}
   button1PressDepth: 0.2
-  button1Collider: {fileID: 5353990070775749812}
+  button1Collider: {fileID: 6832724546847068275}
   button2: {fileID: 7506764962934654390}
   button2PressDepth: 0.2
   button2Collider: {fileID: 6816642454246437479}
@@ -496,7 +496,12 @@ PrefabInstance:
       propertyPath: m_Name
       value: Button01
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    - target: {fileID: 5994972170072141886, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
+      propertyPath: platform
+      value: 
+      objectReference: {fileID: 8555632306502500127}
+    m_RemovedComponents:
+    - {fileID: 5994972170072141886, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -511,8 +516,8 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 7014417646103202762, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
   m_PrefabInstance: {fileID: 2455892455809890770}
   m_PrefabAsset: {fileID: 0}
---- !u!61 &5353990070775749812 stripped
+--- !u!61 &6832724546847068275 stripped
 BoxCollider2D:
-  m_CorrespondingSourceObject: {fileID: 7518799948181316966, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
+  m_CorrespondingSourceObject: {fileID: 8991335411283749281, guid: 1dbd64111f01e944ab3f0e74dffac0d2, type: 3}
   m_PrefabInstance: {fileID: 2455892455809890770}
   m_PrefabAsset: {fileID: 0}
