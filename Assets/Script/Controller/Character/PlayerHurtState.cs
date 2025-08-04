@@ -1,3 +1,4 @@
+using Event;
 using UnityEngine;
 
 public class PlayerHurtState : PlayerState
@@ -23,6 +24,7 @@ public class PlayerHurtState : PlayerState
         if (ghostSystem != null && ghostSystem.currentLives > 0)
         {
             ghostSystem.currentLives--;
+            EventBus.Character.SendMessage(CharacterEventType.CHARACTER_HURT);
             Debug.Log($"生命值减少，剩余: {ghostSystem.currentLives}/{ghostSystem.maxLives}，伤害来自: {damageSource?.name}");
         }
         else

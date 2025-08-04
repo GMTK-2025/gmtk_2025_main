@@ -9,6 +9,7 @@
         GAME_RESTART,
         GAME_PRE_END,
         GAME_END,
+        EXIT_GAME,
     }
 
     public enum InputEventType

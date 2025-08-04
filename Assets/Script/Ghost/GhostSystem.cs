@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
 using System.Collections.Generic;
+using Event;
 
 public enum PlayerStateType
 {
@@ -184,7 +185,7 @@ public class GhostSystem : MonoBehaviour
         if (state is PlayerJumpState) return PlayerStateType.Jump;
         if (state is PlayerFallState) return PlayerStateType.Fall;
         if (state is PlayerStuckState) return PlayerStateType.Stuck;
-        if (state is PlayerVineHangingState) return PlayerStateType.VineHanging;
+        if (state is PlayerHangOnState) return PlayerStateType.VineHanging;
         if (state is PlayerDeadState) return PlayerStateType.Dead;
         return PlayerStateType.Run;
     }
@@ -194,6 +195,7 @@ public class GhostSystem : MonoBehaviour
         if (currentLives <= 0) return;
 
         currentLives--;
+        EventBus.Character.SendMessage(CharacterEventType.CHARACTER_HURT);
         Debug.Log($"创建分身，当前生命值: {currentLives}/{maxLives}");
 
         PlayActionSound();
@@ -301,7 +303,7 @@ public class GhostSystem : MonoBehaviour
             PlayerStateType.Jump => new PlayerJumpState(),
             PlayerStateType.Fall => new PlayerFallState(),
             PlayerStateType.Stuck => new PlayerStuckState(),
-            PlayerStateType.VineHanging => new PlayerVineHangingState(),
+            PlayerStateType.VineHanging => new PlayerHangOnState(),
             PlayerStateType.Dead => new PlayerDeadState(),
             _ => new PlayerRunState()
         };

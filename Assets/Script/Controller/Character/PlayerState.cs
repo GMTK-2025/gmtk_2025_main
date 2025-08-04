@@ -1,55 +1,55 @@
 using UnityEngine;
 
 /// <summary>
-/// Íæ¼Ò×´Ì¬»ùÀà£¬ËùÓÐ¾ßÌå×´Ì¬Ðè¼Ì³Ð²¢ÊµÏÖ³éÏó·½·¨
+/// ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½à£¬ï¿½ï¿½ï¿½Ð¾ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½Ì³Ð²ï¿½Êµï¿½Ö³ï¿½ï¿½ó·½·ï¿½
 /// </summary>
 public abstract class PlayerState
 {
     protected PlayerController player;
 
     /// <summary>
-    /// ½øÈë×´Ì¬Ê±µ÷ÓÃ£¨³õÊ¼»¯Âß¼­£©
+    /// ï¿½ï¿½ï¿½ï¿½×´Ì¬Ê±ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½
     /// </summary>
-    /// <param name="player">Íæ¼Ò¿ØÖÆÆ÷ÊµÀý</param>
+    /// <param name="player">ï¿½ï¿½Ò¿ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½</param>
     public virtual void OnEnter(PlayerController player)
     {
         this.player = player;
     }
 
     /// <summary>
-    /// Âß¼­¸üÐÂ£¨Ã¿Ö¡µ÷ÓÃ£¬´¦ÀíÊäÈë¡¢×´Ì¬ÇÐ»»µÈ£©
+    /// ï¿½ß¼ï¿½ï¿½ï¿½ï¿½Â£ï¿½Ã¿Ö¡ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë¡¢×´Ì¬ï¿½Ð»ï¿½ï¿½È£ï¿½
     /// </summary>
     public abstract void LogicUpdate();
 
     /// <summary>
-    /// ÎïÀí¸üÐÂ£¨¹Ì¶¨Ö¡ÂÊµ÷ÓÃ£¬´¦ÀíÔË¶¯¡¢Åö×²µÈÎïÀíÂß¼­£©
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½Ì¶ï¿½Ö¡ï¿½Êµï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½ï¿½ï¿½ï¿½ï¿½×²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½
     /// </summary>
     public abstract void PhysicsUpdate();
 
     /// <summary>
-    /// ÍË³ö×´Ì¬Ê±µ÷ÓÃ£¨ÇåÀíÂß¼­£©
+    /// ï¿½Ë³ï¿½×´Ì¬Ê±ï¿½ï¿½ï¿½Ã£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½
     /// </summary>
-    /// <param name="player">Íæ¼Ò¿ØÖÆÆ÷ÊµÀý</param>
+    /// <param name="player">ï¿½ï¿½Ò¿ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½</param>
     public abstract void OnExit(PlayerController player);
 
     /// <summary>
-    /// ÅÐ¶Ïµ±Ç°×´Ì¬ÊÇ·ñÎÞµÐ£¨¿É±»×ÓÀàÖØÐ´£©
+    /// ï¿½Ð¶Ïµï¿½Ç°×´Ì¬ï¿½Ç·ï¿½ï¿½ÞµÐ£ï¿½ï¿½É±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½
     /// </summary>
-    /// <returns>true=ÎÞµÐ£¬false=¿ÉÊÜÉË</returns>
+    /// <returns>true=ï¿½ÞµÐ£ï¿½false=ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</returns>
     public virtual bool IsInvincible()
     {
         return player != null && player.isInvincible;
     }
 
     /// <summary>
-    /// °²È«ÇÐ»»×´Ì¬£¨·â×°¿ÕÒýÓÃÐ£Ñé£©
+    /// ï¿½ï¿½È«ï¿½Ð»ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð£ï¿½é£©
     /// </summary>
-    /// <param name="newState">Ä¿±ê×´Ì¬</param>
+    /// <param name="newState">Ä¿ï¿½ï¿½×´Ì¬</param>
     protected void SwitchState(PlayerState newState)
     {
         if (newState == null || player == null)
         {
-            Debug.LogError($"[{GetType().Name}] ÇÐ»»×´Ì¬Ê§°Ü£º×´Ì¬»òÍæ¼Ò¿ØÖÆÆ÷Îª¿Õ£¡", player?.gameObject);
+            Debug.LogError($"[{GetType().Name}] ï¿½Ð»ï¿½×´Ì¬Ê§ï¿½Ü£ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½Ò¿ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Õ£ï¿½", player?.gameObject);
             return;
         }
         player.SwitchState(newState);

@@ -167,7 +167,7 @@ MonoBehaviour:
   rb: {fileID: 0}
   physicsCheck: {fileID: 0}
   animManager: {fileID: 0}
-  collVine: {fileID: 0}
+  collVine: {fileID: 93464997852347153, guid: fe61e817b333ac846871d44c8facc2fe, type: 3}
   speed: 3
   jumpForce: 16.5
   maxJumpCount: 2

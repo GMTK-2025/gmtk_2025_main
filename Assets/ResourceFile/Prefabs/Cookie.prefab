@@ -150,5 +150,5 @@ MonoBehaviour:
   healthRestoreAmount: 1
   destroyOnPickup: 1
   destroyDelay: 0
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: 1148f902fe0141e4fb081f7fec3af5d8, type: 3}
   soundVolume: 1
