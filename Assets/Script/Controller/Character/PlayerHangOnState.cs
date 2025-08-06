@@ -6,6 +6,7 @@ public class PlayerHangOnState : PlayerState
     public override void OnEnter(PlayerController _player)
     {
         player = _player;
+        player.SetRigidActive(false); 
     }
 
     public override void LogicUpdate()
@@ -19,5 +20,6 @@ public class PlayerHangOnState : PlayerState
 
     public override void OnExit(PlayerController player)
     {
+        player.SetRigidActive(true);
     }
 }
