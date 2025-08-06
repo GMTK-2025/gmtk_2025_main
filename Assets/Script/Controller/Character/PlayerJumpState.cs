@@ -13,7 +13,7 @@ public class PlayerJumpState : PlayerState
 
     public override void OnEnter(PlayerController player)
     {
-        this.player = player;
+        this._player = player;
 
         // 播放跳跃音效
         player.PlaySound(player.jumpSound);
@@ -38,29 +38,29 @@ public class PlayerJumpState : PlayerState
         UpdateJumpTimers();
 
         // 下落时切换到下落状态
-        if (player.rb.linearVelocity.y < 0)
+        if (_player.rb.linearVelocity.y < 0)
         {
-            player.SwitchState(player.fallState);
+            _player.SwitchState(_player.fallState);
             return;
         }
 
         // 二段跳检测（限制最大跳跃次数为2，且处理输入缓冲）
-        bool canDoubleJump = player.currentJumpCount < player.maxJumpCount - 1; // 修改这里，确保最多只能跳2次
-        bool jumpInputPressed = player.inputControl.Player.Jump.WasPressedThisFrame();
+        bool canDoubleJump = _player.currentJumpCount < _player.maxJumpCount - 1; // 修改这里，确保最多只能跳2次
+        bool jumpInputPressed = _player.inputControl.Player.Jump.WasPressedThisFrame();
         bool jumpBufferActive = _jumpBufferTimer > 0;
 
         if ((jumpInputPressed || jumpBufferActive) && canDoubleJump && !_hasJumpedThisFrame)
         {
             // 消耗缓冲，执行二段跳
             _jumpBufferTimer = 0;
-            player.SwitchState(new PlayerJumpState());
+            _player.SwitchState(new PlayerJumpState());
         }
     }
 
     private void UpdateJumpTimers()
     {
         // 更新Coyote时间（仅在地面时重置）
-        if (player.physicsCheck.isGround)
+        if (_player.physicsCheck.isGround)
         {
             _coyoteTimer = CoyoteTime;
         }
@@ -70,7 +70,7 @@ public class PlayerJumpState : PlayerState
         }
 
         // 更新跳跃输入缓冲
-        if (player.inputControl.Player.Jump.WasPressedThisFrame())
+        if (_player.inputControl.Player.Jump.WasPressedThisFrame())
         {
             _jumpBufferTimer = JumpInputBuffer;
         }

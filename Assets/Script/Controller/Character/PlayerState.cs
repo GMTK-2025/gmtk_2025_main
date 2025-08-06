@@ -5,7 +5,7 @@ using UnityEngine;
 /// </summary>
 public abstract class PlayerState
 {
-    protected PlayerController player;
+    protected PlayerController _player;
 
     /// <summary>
     /// ����״̬ʱ���ã���ʼ���߼���
@@ -13,7 +13,7 @@ public abstract class PlayerState
     /// <param name="player">��ҿ�����ʵ��</param>
     public virtual void OnEnter(PlayerController player)
     {
-        this.player = player;
+        _player = player;
     }
 
     /// <summary>
@@ -38,7 +38,7 @@ public abstract class PlayerState
     /// <returns>true=�޵У�false=������</returns>
     public virtual bool IsInvincible()
     {
-        return player != null && player.isInvincible;
+        return _player != null && _player.isInvincible;
     }
 
     /// <summary>
@@ -47,11 +47,11 @@ public abstract class PlayerState
     /// <param name="newState">Ŀ��״̬</param>
     protected void SwitchState(PlayerState newState)
     {
-        if (newState == null || player == null)
+        if (newState == null || _player == null)
         {
-            Debug.LogError($"[{GetType().Name}] �л�״̬ʧ�ܣ�״̬����ҿ�����Ϊ�գ�", player?.gameObject);
+            Debug.LogError($"[{GetType().Name}] �л�״̬ʧ�ܣ�״̬����ҿ�����Ϊ�գ�", _player?.gameObject);
             return;
         }
-        player.SwitchState(newState);
+        _player.SwitchState(newState);
     }
 }

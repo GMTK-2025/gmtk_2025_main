@@ -8,7 +8,7 @@ public class PlayerRunState : PlayerState
 
     public override void OnEnter(PlayerController player)
     {
-        this.player = player;
+        this._player = player;
         // 初始化音效状态
         isPlayingRunSound = false;
         isRunning = false;
@@ -16,14 +16,14 @@ public class PlayerRunState : PlayerState
 
     public override void LogicUpdate()
     {
-        player.animManager.SetWalking(isRunning);
+        _player.animManager.SetWalking(isRunning);
         // 检测跳跃输入，支持二段跳
-        if (player.inputControl.Player.Jump.WasPressedThisFrame())
+        if (_player.inputControl.Player.Jump.WasPressedThisFrame())
         {
             // 允许跳跃的条件：要么在地面上，要么在空中但未达到最大跳跃次数
-            if (player.physicsCheck.isGround || player.currentJumpCount < player.maxJumpCount - 1)
+            if (_player.physicsCheck.isGround || _player.currentJumpCount < _player.maxJumpCount - 1)
             {
-                player.SwitchState(player.jumpState);
+                _player.SwitchState(_player.jumpState);
                 return; // 切换状态后退出当前帧逻辑
             }
         }
@@ -35,19 +35,19 @@ public class PlayerRunState : PlayerState
     public override void PhysicsUpdate()
     {
         // 设置水平移动速度
-        player.rb.linearVelocity = new Vector2(
-            player.inputDirection.x * player.speed,
-            player.rb.linearVelocity.y
+        _player.rb.linearVelocity = new Vector2(
+            _player.inputDirection.x * _player.speed,
+            _player.rb.linearVelocity.y
         );
 
         // 判断是否正在移动（左右方向键按下）
-        isRunning = player.inputDirection.x != 0;
+        isRunning = _player.inputDirection.x != 0;
 
         if (isRunning)
         {
             // 角色翻转逻辑
-            int faceDir = player.inputDirection.x > 0 ? 1 : -1;
-            player.transform.localScale = new Vector3(faceDir, 1, 1);
+            int faceDir = _player.inputDirection.x > 0 ? 1 : -1;
+            _player.transform.localScale = new Vector3(faceDir, 1, 1);
 
             // 处理子对象翻转
             //foreach (Transform child in player.transform)
@@ -61,12 +61,12 @@ public class PlayerRunState : PlayerState
     private void UpdateRunSound()
     {
         // 仅在地面上时播放跑步音效（避免空中移动误触发）
-        if (!player.physicsCheck.isGround)
+        if (!_player.physicsCheck.isGround)
         {
             // 不在地面时强制停止音效
             if (isPlayingRunSound)
             {
-                player.StopLoopSound();
+                _player.StopLoopSound();
                 isPlayingRunSound = false;
             }
             return;
@@ -75,13 +75,13 @@ public class PlayerRunState : PlayerState
         // 移动时播放循环音效
         if (isRunning && !isPlayingRunSound)
         {
-            player.PlayLoopSound(player.runSound); // 播放跑步循环音效
+            _player.PlayLoopSound(_player.runSound); // 播放跑步循环音效
             isPlayingRunSound = true;
         }
         // 停止移动时停止音效
         else if (!isRunning && isPlayingRunSound)
         {
-            player.StopLoopSound(); // 停止跑步音效
+            _player.StopLoopSound(); // 停止跑步音效
             isPlayingRunSound = false;
         }
     }

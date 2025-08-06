@@ -36,7 +36,7 @@ public class PlayerClimbState : PlayerState
     public override void OnEnter(PlayerController player)
     {
         base.OnEnter(player);
-        this.player = player;
+        this._player = player;
         isFirstEnter = true;
         isClimbing = true;
 
@@ -114,7 +114,7 @@ public class PlayerClimbState : PlayerState
         }
 
         // 跳跃退出攀爬
-        if (player.inputControl.Player.Jump.triggered)
+        if (_player.inputControl.Player.Jump.triggered)
         {
             ExitClimbingWithJump();
             return;
@@ -138,28 +138,28 @@ public class PlayerClimbState : PlayerState
 
     private void ProcessClimbingInput()
     {
-        Vector2 input = player.inputDirection;
+        Vector2 input = _player.inputDirection;
         isMoving = false; // 重置移动状态
 
         // 垂直移动检测（按住上/下方向键）
         if (Mathf.Abs(input.y) > 0.05f)
         {
-            player.rb.linearVelocity = new Vector2(0, input.y * player.climbSpeed);
+            _player.rb.linearVelocity = new Vector2(0, input.y * _player.climbSpeed);
             isMoving = true; // 标记为移动状态
         }
         else
         {
-            player.rb.linearVelocity = new Vector2(0, 0);
+            _player.rb.linearVelocity = new Vector2(0, 0);
         }
 
         // 水平移动检测（按住左/右方向键）
         if (Mathf.Abs(input.x) > 0.05f)
         {
-            float moveAmount = input.x * player.speed * 0.9f * Time.deltaTime;
-            Vector3 newPosition = player.transform.position;
+            float moveAmount = input.x * _player.speed * 0.9f * Time.deltaTime;
+            Vector3 newPosition = _player.transform.position;
             newPosition.x += moveAmount;
             newPosition.x = Mathf.Clamp(newPosition.x, leftBound, rightBound);
-            player.transform.position = newPosition;
+            _player.transform.position = newPosition;
             isMoving = true; // 标记为移动状态
         }
     }
@@ -170,25 +170,25 @@ public class PlayerClimbState : PlayerState
         // 移动时播放循环音效
         if (isMoving && !isPlayingClimbSound)
         {
-            player.PlayLoopSound(player.climbSound);
+            _player.PlayLoopSound(_player.climbSound);
             isPlayingClimbSound = true;
         }
         // 停止移动时停止音效
         else if (!isMoving && isPlayingClimbSound)
         {
-            player.StopLoopSound();
+            _player.StopLoopSound();
             isPlayingClimbSound = false;
         }
     }
 
     private Transform FindClosestClimbable()
     {
-        if (player == null) return null;
+        if (_player == null) return null;
 
         Collider2D[] hits = Physics2D.OverlapCircleAll(
-            player.transform.position,
-            player.climbCheckDistance * 1.5f,
-            player.climbLayer);
+            _player.transform.position,
+            _player.climbCheckDistance * 1.5f,
+            _player.climbLayer);
 
         if (hits.Length == 0)
         {
@@ -203,7 +203,7 @@ public class PlayerClimbState : PlayerState
             if (hit.isTrigger) continue;
 
             float dist = Vector2.Distance(
-                player.transform.position,
+                _player.transform.position,
                 hit.transform.position);
 
             if (dist < minDistance)
@@ -223,13 +223,13 @@ public class PlayerClimbState : PlayerState
 
     private bool CheckStillClimbing()
     {
-        if (climbableObject == null || player == null) return false;
+        if (climbableObject == null || _player == null) return false;
 
         RaycastHit2D hit = Physics2D.Raycast(
-            player.transform.position,
-            (climbableObject.position - player.transform.position).normalized,
+            _player.transform.position,
+            (climbableObject.position - _player.transform.position).normalized,
             minDistanceToClimbable * horizontalRangeMultiplier,
-            player.climbLayer);
+            _player.climbLayer);
 
         return hit.collider != null && hit.transform == climbableObject;
     }
@@ -239,16 +239,16 @@ public class PlayerClimbState : PlayerState
         if (!isClimbing) return;
 
         isClimbing = false;
-        player.rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-        player.rb.gravityScale = player.normalGravityScale;
+        _player.rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        _player.rb.gravityScale = _player.normalGravityScale;
         RestoreOriginalCollisionStates();
-        player.SwitchState(player.fallState);
+        _player.SwitchState(_player.fallState);
         climbableObject = null;
 
         // 退出时停止音效
         if (isPlayingClimbSound)
         {
-            player.StopLoopSound();
+            _player.StopLoopSound();
             isPlayingClimbSound = false;
         }
     }
@@ -256,17 +256,17 @@ public class PlayerClimbState : PlayerState
     private void ExitClimbingWithJump()
     {
         isClimbing = false;
-        player.rb.constraints = RigidbodyConstraints2D.FreezeRotation;
-        player.rb.gravityScale = player.normalGravityScale;
+        _player.rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        _player.rb.gravityScale = _player.normalGravityScale;
         RestoreOriginalCollisionStates();
-        player.rb.AddForce(new Vector2(0, player.jumpForce * 0.7f), ForceMode2D.Impulse);
-        player.SwitchState(player.jumpState);
+        _player.rb.AddForce(new Vector2(0, _player.jumpForce * 0.7f), ForceMode2D.Impulse);
+        _player.SwitchState(_player.jumpState);
         climbableObject = null;
 
         // 退出时停止音效
         if (isPlayingClimbSound)
         {
-            player.StopLoopSound();
+            _player.StopLoopSound();
             isPlayingClimbSound = false;
         }
     }
@@ -291,9 +291,9 @@ public class PlayerClimbState : PlayerState
 
     private void SaveOriginalCollisionStates()
     {
-        if (player == null) return;
+        if (_player == null) return;
 
-        int playerLayer = player.gameObject.layer;
+        int playerLayer = _player.gameObject.layer;
         for (int i = 0; i < 32; i++)
         {
             originalIgnoreStates[i] = Physics2D.GetIgnoreLayerCollision(playerLayer, i);
@@ -304,9 +304,9 @@ public class PlayerClimbState : PlayerState
 
     private void RestoreOriginalCollisionStates()
     {
-        if (player == null) return;
+        if (_player == null) return;
 
-        int playerLayer = player.gameObject.layer;
+        int playerLayer = _player.gameObject.layer;
         for (int i = 0; i < 32; i++)
         {
             Physics2D.IgnoreLayerCollision(playerLayer, i, originalIgnoreStates[i]);

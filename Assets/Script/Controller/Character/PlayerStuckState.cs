@@ -13,7 +13,7 @@ public class PlayerStuckState : PlayerState
     // ����ê�㣨�����������й̶��㣩
     public void SetTargetPoint(Transform point)
     {
-        if (player == null || point == null) return;
+        if (_player == null || point == null) return;
         CleanupTempPoint();
         anchorPoint = point;
         isUsingTempPoint = false;
@@ -24,7 +24,7 @@ public class PlayerStuckState : PlayerState
     // ��̬����ê�㣨������ʱ���ص㣩
     public void CreateAndSetTargetPoint(Transform parent, Vector2 localPos)
     {
-        if (player == null || parent == null) return;
+        if (_player == null || parent == null) return;
         CleanupTempPoint();
 
         GameObject tempPoint = new GameObject("TempAnchorPoint");
@@ -40,8 +40,8 @@ public class PlayerStuckState : PlayerState
     // �����ɫ�߶ȣ�����ê��ƫ�ƣ�
     private void CalculatePlayerHeight()
     {
-        if (player == null) return;
-        Collider2D collider = player.GetComponent<Collider2D>();
+        if (_player == null) return;
+        Collider2D collider = _player.GetComponent<Collider2D>();
         playerHeight = collider != null ? collider.bounds.size.y : 1f;
     }
 
@@ -63,7 +63,7 @@ public class PlayerStuckState : PlayerState
     // �����ס״̬ʱ��ʼ��
     public override void OnEnter(PlayerController player)
     {
-        this.player = player;
+        this._player = player;
         stuckTimer = player.stuckDuration;
         hasHandledJumpInput = false;
 
@@ -76,10 +76,10 @@ public class PlayerStuckState : PlayerState
     // ÿ֡�߼����£�������롢��ʱ��
     public override void LogicUpdate()
     {
-        if (player == null) return;
+        if (_player == null) return;
 
         // �����Ծ���루���ո��뿪��ס״̬��
-        bool jumpPressed = player.inputControl.Player.Jump.IsPressed();
+        bool jumpPressed = _player.inputControl.Player.Jump.IsPressed();
         if (jumpPressed && !hasHandledJumpInput)
         {
             hasHandledJumpInput = true;
@@ -98,32 +98,32 @@ public class PlayerStuckState : PlayerState
     // �������£����ֽ�ɫλ����ê��ͬ����
     public override void PhysicsUpdate()
     {
-        if (player != null && anchorPoint != null)
+        if (_player != null && anchorPoint != null)
         {
-            player.transform.position = anchorPoint.position + positionOffset;
-            player.rb.linearVelocity = Vector2.zero;
+            _player.transform.position = anchorPoint.position + positionOffset;
+            _player.rb.linearVelocity = Vector2.zero;
         }
     }
 
     // �뿪��ס״̬���ָ�������ʩ�������л�״̬��
     private void EscapeStuck()
     {
-        if (player == null) return;
+        if (_player == null) return;
 
         // �ָ�����Ϊ��̬ģʽ����������ģ�⣩
-        player.rb.bodyType = RigidbodyType2D.Dynamic;
-        player.rb.gravityScale = player.normalGravityScale;
+        _player.rb.bodyType = RigidbodyType2D.Dynamic;
+        _player.rb.gravityScale = _player.normalGravityScale;
 
         // ʩ���뿪�����ý�ɫ����/������
-        Vector2 escapeVelocity = Vector2.up * player.jumpForce * 0.4f;
-        if (player.inputDirection.x != 0)
+        Vector2 escapeVelocity = Vector2.up * _player.jumpForce * 0.4f;
+        if (_player.inputDirection.x != 0)
         {
-            escapeVelocity.x = player.inputDirection.x * player.speed * 0.6f;
+            escapeVelocity.x = _player.inputDirection.x * _player.speed * 0.6f;
         }
-        player.rb.linearVelocity = escapeVelocity;
+        _player.rb.linearVelocity = escapeVelocity;
 
         // �л�״̬��������ܣ��������䣩
-        player.SwitchState(player.physicsCheck.isGround ? player.runState : player.fallState);
+        _player.SwitchState(_player.physicsCheck.isGround ? _player.runState : _player.fallState);
     }
 
     // �뿪״̬ʱ����

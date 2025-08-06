@@ -4,17 +4,17 @@ public class PlayerDeadState : PlayerState
 {
     public override void OnEnter(PlayerController player)
     {
-        this.player = player;
+        this._player = player;
 
-        // ½ûÓÃÊäÈë¿ØÖÆ£¨°üÀ¨ÒÆ¶¯ºÍÌøÔ¾£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½ï¿½ï¿½ï¿½Ô¾ï¿½ï¿½
         player.inputControl.Player.Move.Disable();
         player.inputControl.Player.Jump.Disable();
 
-        // Í£Ö¹ÎïÀíÔË¶¯
+        // Í£Ö¹ï¿½ï¿½ï¿½ï¿½ï¿½Ë¶ï¿½
         player.rb.linearVelocity = Vector2.zero;
         player.rb.simulated = false;
 
-        // ²¥·ÅËÀÍöÒôĞ§£¨µ¥´Î²¥·Å£©
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ§ï¿½ï¿½ï¿½ï¿½ï¿½Î²ï¿½ï¿½Å£ï¿½
         player.PlaySound(player.dieSound);
 
         Debug.Log("Player entered dead state");
@@ -22,17 +22,17 @@ public class PlayerDeadState : PlayerState
 
     public override void LogicUpdate()
     {
-        // ËÀÍö×´Ì¬ÎŞĞèÂß¼­¸üĞÂ£¬¿ÉÌí¼ÓÓÎÏ·ÖØÆôÂß¼­
+        // ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½ï¿½ï¿½ï¿½Â£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï·ï¿½ï¿½ï¿½ï¿½ï¿½ß¼ï¿½
     }
 
     public override void PhysicsUpdate()
     {
-        // ËÀÍö×´Ì¬ÎŞĞèÎïÀí¸üĞÂ
+        // ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     }
 
     public override void OnExit(PlayerController player)
     {
-        // ÍË³öËÀÍö×´Ì¬Ê±»Ö¸´¿ØÖÆ
+        // ï¿½Ë³ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬Ê±ï¿½Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½
         player.inputControl.Player.Move.Enable();
         player.inputControl.Player.Jump.Enable();
         player.rb.simulated = true;

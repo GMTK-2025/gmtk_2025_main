@@ -3,43 +3,43 @@ using UnityEngine;
 
 public class PlayerHurtState : PlayerState
 {
-    // ÊÜÉË×´Ì¬³ÖÐøÊ±¼ä
+    // ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½
     private float hurtDuration = 0.2f;
     private float hurtTimer;
 
-    // »÷ÍË²ÎÊý
+    // ï¿½ï¿½ï¿½Ë²ï¿½ï¿½ï¿½
     private Vector2 knockbackForce = new Vector2(-3f, 5f);
 
-    // ¼ÇÂ¼ÉËº¦Ô´
+    // ï¿½ï¿½Â¼ï¿½Ëºï¿½Ô´
     private GameObject damageSource;
 
     public override void OnEnter(PlayerController player)
     {
         base.OnEnter(player);
-        Debug.Log($"½øÈëÊÜÉË×´Ì¬£¬ÉËº¦Ô´: {damageSource?.name ?? "Î´Öª¶ÔÏó"}");
+        Debug.Log($"ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬ï¿½ï¿½ï¿½Ëºï¿½Ô´: {damageSource?.name ?? "Î´Öªï¿½ï¿½ï¿½ï¿½"}");
         player.PlaySound(player.hurtSound, player.hurtSoundVolume);
 
-        // ¿ÛÑªÂß¼­
+        // ï¿½ï¿½Ñªï¿½ß¼ï¿½
         GhostSystem ghostSystem = player.GetGhostSystem();
         if (ghostSystem != null && ghostSystem.currentLives > 0)
         {
             ghostSystem.currentLives--;
             EventBus.Character.SendMessage(CharacterEventType.CHARACTER_HURT);
-            Debug.Log($"ÉúÃüÖµ¼õÉÙ£¬Ê£Óà: {ghostSystem.currentLives}/{ghostSystem.maxLives}£¬ÉËº¦À´×Ô: {damageSource?.name}");
+            Debug.Log($"ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½Ù£ï¿½Ê£ï¿½ï¿½: {ghostSystem.currentLives}/{ghostSystem.maxLives}ï¿½ï¿½ï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½: {damageSource?.name}");
         }
         else
         {
-            Debug.LogWarning($"ÎÞ·¨¿ÛÑª£ºGhostSystemÎ´ÕÒµ½»òÉúÃüÖµ²»×ã£¬ÉËº¦À´×Ô: {damageSource?.name}");
+            Debug.LogWarning($"ï¿½Þ·ï¿½ï¿½ï¿½Ñªï¿½ï¿½GhostSystemÎ´ï¿½Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ã£¬ï¿½Ëºï¿½ï¿½ï¿½ï¿½ï¿½: {damageSource?.name}");
         }
 
         player.isInvincible = true;
         player.invincibleTimer = player.globalInvincibleDuration;
-        Debug.Log($"Æô¶¯ÎÞµÐ×´Ì¬£¬³ÖÐø {player.globalInvincibleDuration} Ãë");
+        Debug.Log($"ï¿½ï¿½ï¿½ï¿½ï¿½Þµï¿½×´Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ {player.globalInvincibleDuration} ï¿½ï¿½");
 
         hurtTimer = hurtDuration;
     }
 
-    // ÐÂÔö·½·¨£ºÉèÖÃÉËº¦Ô´
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ëºï¿½Ô´
     public void SetDamageSource(GameObject source)
     {
         damageSource = source;
@@ -47,19 +47,19 @@ public class PlayerHurtState : PlayerState
 
     public override void LogicUpdate()
     {
-        if (player == null) return;
+        if (_player == null) return;
 
         hurtTimer -= Time.deltaTime;
         if (hurtTimer <= 0)
         {
-            // ÇÐ»»µ½Õý³£×´Ì¬
-            if (player.physicsCheck.isGround)
+            // ï¿½Ð»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×´Ì¬
+            if (_player.physicsCheck.isGround)
             {
-                player.SwitchState(player.runState);
+                _player.SwitchState(_player.runState);
             }
             else
             {
-                player.SwitchState(player.fallState);
+                _player.SwitchState(_player.fallState);
             }
         }
     }
@@ -68,10 +68,10 @@ public class PlayerHurtState : PlayerState
 
     public override void OnExit(PlayerController player)
     {
-        // Çå³ýÉËº¦Ô´ÒýÓÃ
+        // ï¿½ï¿½ï¿½ï¿½Ëºï¿½Ô´ï¿½ï¿½ï¿½ï¿½
         damageSource = null;
     }
 
-    // ÎÞµÐ×´Ì¬ÅÐ¶Ï
-    public override bool IsInvincible() => player.isInvincible;
+    // ï¿½Þµï¿½×´Ì¬ï¿½Ð¶ï¿½
+    public override bool IsInvincible() => _player.isInvincible;
 }

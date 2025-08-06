@@ -4,7 +4,7 @@ public class PlayerFallState : PlayerState
 {
     public override void OnEnter(PlayerController player)
     {
-        this.player = player;
+        this._player = player;
    
         // player.animator.SetTrigger("Fall");
     }
@@ -12,24 +12,24 @@ public class PlayerFallState : PlayerState
     public override void LogicUpdate()
     {
       
-        if (player.physicsCheck.isGround)
+        if (_player.physicsCheck.isGround)
         {
-            player.SwitchState(player.runState);
+            _player.SwitchState(_player.runState);
         }
       
-        else if (player.inputControl.Player.Jump.WasPressedThisFrame() &&
-                player.currentJumpCount < player.maxJumpCount)
+        else if (_player.inputControl.Player.Jump.WasPressedThisFrame() &&
+                _player.currentJumpCount < _player.maxJumpCount)
         {
-            player.SwitchState(new PlayerJumpState());
+            _player.SwitchState(new PlayerJumpState());
         }
     }
 
     public override void PhysicsUpdate()
     {
        
-        player.rb.linearVelocity = new Vector2(
-            player.inputDirection.x * player.speed,
-            player.rb.linearVelocity.y
+        _player.rb.linearVelocity = new Vector2(
+            _player.inputDirection.x * _player.speed,
+            _player.rb.linearVelocity.y
         );
     }
 
