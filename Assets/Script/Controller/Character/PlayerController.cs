@@ -163,6 +163,11 @@ public class PlayerController : MonoBehaviour
         currentState?.OnExit(this);
     }
 
+    public void AddForce(Vector2 force, ForceMode2D mode = ForceMode2D.Impulse)
+    {
+        rb.AddForce(force, ForceMode2D.Impulse);
+    }
+
     private void Update()
     {
         if (currentState == null)

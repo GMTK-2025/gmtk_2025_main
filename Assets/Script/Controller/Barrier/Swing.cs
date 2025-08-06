@@ -1,4 +1,5 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 namespace Script.Controller.Barrier
@@ -10,22 +11,17 @@ namespace Script.Controller.Barrier
         public float rotationAngle;
         public float currentAngle;
         public Transform twig;
-
-        private PlayerController _currentPlayer; 
+        public float _attractInterval = 3f;
+        private bool _canAttract = true;
 
         private void FixedUpdate()
         {
             Rotate();
-
-          
-            if (_currentPlayer != null && Input.GetKey(KeyCode.Space))
-            {
-                Release(_currentPlayer);
-            }
         }
 
         public void OnTriggerEnter2D(Collider2D other)
         {
+            if (!_canAttract) return;
             if (other.CompareTag("Player"))
             {
                 PlayerController player = other.GetComponent<PlayerController>();
@@ -34,11 +30,7 @@ namespace Script.Controller.Barrier
                     player.SwitchState(player.hangOnState);
                     player.transform.SetParent(twig);
                     player.transform.SetPositionAndRotation(twig.position, Quaternion.identity);
-                    player.SetRigidActive(false);
-                    player.SetColliderActive(false);
                     player.Swing = this;
-
-                    _currentPlayer = player; 
                 }
             }
         }
@@ -55,16 +47,15 @@ namespace Script.Controller.Barrier
             transform.Rotate(angle / rotationTime * rotationSpeed * Time.deltaTime);
         }
 
-        public void Release(PlayerController player)
+        public async UniTask Release(PlayerController player)
         {
-            if (player == null) return;
-
-            player.SetRigidActive(true);
-            player.SetColliderActive(true);
             player.transform.SetParent(null);
             player.SwitchState(player.fallState);
-            _currentPlayer = null;
-            player.Swing = null;
+            Vector2 angle = transform.rotation.eulerAngles;
+            player.AddForce(new Vector2(angle.x, angle.y));
+            _canAttract = false;
+            await UniTask.WaitForSeconds(_attractInterval);
+            _canAttract = true;
         }
     }
 }
